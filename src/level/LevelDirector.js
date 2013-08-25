@@ -12,9 +12,8 @@
 	 * a level manager object <br>
 	 * once ressources loaded, the level director contains all references of defined levels<br>
 	 * There is no constructor function for me.levelDirector, this is a static object
-	 * @final
+	 * @namespace me.levelDirector
 	 * @memberOf me
-	 * @constructor Should not be called by the user.
 	 */
 	me.levelDirector = (function() {
 		// hold public stuff in our singletong
@@ -40,7 +39,7 @@
   		  ---------------------------------------------*/
 		/**
 		 * reset the level director 
-		 * @private
+		 * @ignore
 		 */
 		obj.reset = function() {
 
@@ -48,7 +47,7 @@
 
 		/**
 		 * add a level  
-		 * @private
+		 * @ignore
 		 */
 		obj.addLevel = function(level) {
 			throw "melonJS: no level loader defined";
@@ -57,17 +56,17 @@
 		/**
 		 *
 		 * add a TMX level  
-		 * @private
+		 * @ignore
 		 */
 		obj.addTMXLevel = function(levelId, callback) {
 			// just load the level with the XML stuff
 			if (levels[levelId] == null) {
 				//console.log("loading "+ levelId);
-				levels[levelId] = new me.TMXTileMap(levelId, 0, 0);
+				levels[levelId] = new me.TMXTileMap(levelId);
 				// set the name of the level
 				levels[levelId].name = levelId;
 				// level index
-				levelIdx[levelIdx.length] = levelId;
+				levelIdx.push(levelId);
 			} 
 			else  {
 				//console.log("level %s already loaded", levelId);
@@ -85,7 +84,8 @@
 		/**
 		 * load a level into the game manager<br>
 		 * (will also create all level defined entities, etc..)
-		 * @name me.levelDirector#loadLevel
+		 * @name loadLevel
+		 * @memberOf me.levelDirector
 		 * @public
 		 * @function
 		 * @param {String} level level id
@@ -113,12 +113,12 @@
 			if (levels[levelId] instanceof me.TMXTileMap) {
 
 				// check the status of the state mngr
-				var isRunning = me.state.isRunning();
+				var wasRunning = me.state.isRunning();
 
-				if (isRunning) {
-					// pause the game loop to avoid 
+				if (wasRunning) {
+					// stop the game loop to avoid 
 					// some silly side effects
-					me.state.pause();
+					me.state.stop();
 				}
 
 				// reset the gameObject Manager (just in case!)
@@ -142,10 +142,10 @@
 				// add the specified level to the game manager
 				me.game.loadTMXLevel(levels[levelId]);
 				
-				if (isRunning) {
+				if (wasRunning) {
 					// resume the game loop if it was
 					// previously running
-					me.state.resume();
+					me.state.restart.defer();
 				}
 			} else
 				throw "melonJS: no level loader defined";
@@ -155,7 +155,8 @@
 
 		/**
 		 * return the current level id<br>
-		 * @name me.levelDirector#getCurrentLevelId
+		 * @name getCurrentLevelId
+		 * @memberOf me.levelDirector
 		 * @public
 		 * @function
 		 * @return {String}
@@ -166,7 +167,8 @@
 
 		/**
 		 * reload the current level<br>
-		 * @name me.levelDirector#reloadLevel
+		 * @name reloadLevel
+		 * @memberOf me.levelDirector
 		 * @public
 		 * @function
 		 */
@@ -178,7 +180,8 @@
 
 		/**
 		 * load the next level<br>
-		 * @name me.levelDirector#nextLevel
+		 * @name nextLevel
+		 * @memberOf me.levelDirector
 		 * @public
 		 * @function
 		 */
@@ -193,7 +196,8 @@
 
 		/**
 		 * load the previous level<br>
-		 * @name me.levelDirector#previousLevel
+		 * @name previousLevel
+		 * @memberOf me.levelDirector
 		 * @public
 		 * @function
 		 */
@@ -208,7 +212,8 @@
 
 		/**
 		 * return the amount of level preloaded<br>
-		 * @name me.levelDirector#levelCount
+		 * @name levelCount
+		 * @memberOf me.levelDirector
 		 * @public
 		 * @function
 		 */

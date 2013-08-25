@@ -20,16 +20,17 @@
 	 * @extends Object
 	 * @memberOf me
 	 * @constructor
-	 * @param {String} font
-	 * @param {int} size
-	 * @param {String} color
-	 * @param {String} [textAlign="left"] horizontal alignement
+	 * @param {String} font a CSS font name
+	 * @param {Number|String} size size, or size + suffix (px, em, pt)
+	 * @param {String} color a CSS color value
+	 * @param {String} [textAlign="left"] horizontal alignment
 	 */
 	me.Font = Object.extend(
 	/** @scope me.Font.prototype */
 	{
 
 		// private font properties
+		/** @ignore */
 		font : null,
 		height : null,
 		color : null,
@@ -64,7 +65,7 @@
 		 */
 		lineHeight : 1.0,
 
-		/** @private */
+		/** @ignore */
 		init : function(font, size, color, textAlign) {
 
 			// font name and type
@@ -74,6 +75,9 @@
 
 		/**
 		 * make the font bold
+		 * @name bold
+		 * @memberOf me.Font
+		 * @function
 		 */
 		bold : function() {
 			this.font = "bold " + this.font;
@@ -81,6 +85,9 @@
 
 		/**
 		 * make the font italic
+		 * @name italic
+		 * @memberOf me.Font
+		 * @function
 		 */
 		italic : function() {
 			this.font = "italic " + this.font;
@@ -88,10 +95,13 @@
 
 		/**
 		 * Change the font settings
-		 * @param {String} font
-		 * @param {int} size/{String} size + suffix (px, em, pt)
-		 * @param {String} color
-		 * @param {String} [textAlign] horizontal alignement
+		 * @name set
+		 * @memberOf me.Font
+		 * @function
+		 * @param {String} font a CSS font name
+		 * @param {Number|String} size size, or size + suffix (px, em, pt)
+		 * @param {String} color a CSS color value
+		 * @param {String} [textAlign="left"] horizontal alignment
 		 * @example
 		 * font.set("Arial", 20, "white");
 		 * font.set("Arial", "1.5em", "white");
@@ -115,7 +125,7 @@
 
 		/**
 		 * FIX ME !
-		 * @private
+		 * @ignore
 		 */
 		getRect : function() {
 			return new me.Rect(new Vector2d(0, 0), 0, 0);
@@ -123,6 +133,9 @@
 
 		/**
 		 * measure the given text size in pixels
+		 * @name measureText
+		 * @memberOf me.Font
+		 * @function
 		 * @param {Context} context 2D Context
 		 * @param {String} text
 		 * @return {Object} returns an object, with two attributes: width (the width of the text) and height (the height of the text).
@@ -145,6 +158,9 @@
 
 		/**
 		 * draw a text at the specified coord
+		 * @name draw
+		 * @memberOf me.Font
+		 * @function
 		 * @param {Context} context 2D Context
 		 * @param {String} text
 		 * @param {int} x
@@ -184,6 +200,7 @@
 	/** @scope me.BitmapFont.prototype */
 	{
 		// character size;
+		/** @ignore */
 		size : null,
 		// font scale;
 		sSize : null,
@@ -193,7 +210,7 @@
 		// #char per row
 		charCount : 0,
 
-		/** @private */
+		/** @ignore */
 		init : function(font, size, scale, firstChar) {
 			// font name and type
 			this.parent(font, null, null);
@@ -223,7 +240,7 @@
 
 		/**
 		 * Load the font metrics
-		 * @private	
+		 * @ignore	
 		 */
 		loadFontMetrics : function(font, size) {
 			this.font = me.loader.getImage(font);
@@ -239,6 +256,9 @@
 
 		/**
 		 * change the font settings
+		 * @name set
+		 * @memberOf me.BitmapFont
+		 * @function
 		 * @param {String} textAlign ("left", "center", "right")
 		 * @param {int} [scale]
 		 */
@@ -252,6 +272,9 @@
 		
 		/**
 		 * change the font display size
+		 * @name resize
+		 * @memberOf me.BitmapFont
+		 * @function
 		 * @param {int} scale ratio
 		 */
 		resize : function(scale) {
@@ -263,6 +286,9 @@
 
 		/**
 		 * measure the given text size in pixels
+		 * @name measureText
+		 * @memberOf me.BitmapFont
+		 * @function
 		 * @param {Context} context 2D Context
 		 * @param {String} text
 		 * @return {Object} returns an object, with two attributes: width (the width of the text) and height (the height of the text).
@@ -280,6 +306,9 @@
 
 		/**
 		 * draw a text at the specified coord
+		 * @name draw
+		 * @memberOf me.BitmapFont
+		 * @function
 		 * @param {Context} context 2D Context
 		 * @param {String} text
 		 * @param {int} x
@@ -327,13 +356,15 @@
 				for ( var c = 0,len = string.length; c < len; c++) {
 					// calculate the char index
 					var idx = string.charCodeAt(c) - this.firstChar;
-					// draw it
-					context.drawImage(this.font,
+					if (idx >= 0) {
+						// draw it
+						context.drawImage(this.font,
 							this.size.x * (idx % this.charCount), 
 							this.size.y * ~~(idx / this.charCount), 
 							this.size.x, this.size.y, 
 							~~x, ~~y, 
 							this.sSize.x, this.sSize.y);
+					}
 					x += this.sSize.x;
 				}
 				// increment line

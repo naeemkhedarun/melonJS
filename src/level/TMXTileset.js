@@ -44,7 +44,7 @@
 		 */
 		tileId : null,
 		
-		/** @private */
+		/** @ignore */
 		init : function(x, y, w, h, gid) {
 			this.parent(new me.Vector2d(x * w, y * h), w, h);
 			
@@ -265,7 +265,7 @@
 		
 		/**
 		 * set the tile properties
-		 * @private
+		 * @ignore
 		 * @function
 		 */
 		setTileProperty : function(gid, prop) {
@@ -301,9 +301,11 @@
 		//return an Image Object with the specified tile
 		getTileImage : function(tmxTile) {
 			// create a new image object
-			var image = me.video.createCanvasSurface(this.tilewidth, this.tileheight);
-			this.drawTile(image, 0, 0, tmxTile);
-			return image.canvas;
+			var _context = me.video.getContext2d(
+					me.video.createCanvas(this.tilewidth, this.tileheight)
+			);
+			this.drawTile(_context, 0, 0, tmxTile);
+			return _context.canvas;
 		},
 		
 		// e.g. getTileProperty (gid)	
@@ -342,24 +344,26 @@
 		
 		/**
 		 * return the x offset of the specified tile in the tileset image
-		 * @private
+		 * @ignore
 		 */
 		getTileOffsetX : function(tileId) {
-			if (this.tileXOffset[tileId] == null) {
-				this.tileXOffset[tileId] = this.margin + (this.spacing + this.tilewidth)  * (tileId % this.hTileCount);
+			var offset = this.tileXOffset[tileId];
+			if (typeof(offset) === 'undefined') {
+				offset = this.tileXOffset[tileId] = this.margin + (this.spacing + this.tilewidth)  * (tileId % this.hTileCount);
 			}
-			return this.tileXOffset[tileId];
+			return offset;
 		},
 		
 		/**
 		 * return the y offset of the specified tile in the tileset image
-		 * @private
+		 * @ignore
 		 */
 		getTileOffsetY : function(tileId) {
-			if (this.tileYOffset[tileId] == null) {
-				this.tileYOffset[tileId] = this.margin + (this.spacing + this.tileheight)	* ~~(tileId / this.hTileCount);
+			var offset = this.tileYOffset[tileId];
+			if (typeof(offset) === 'undefined') {
+				offset = this.tileYOffset[tileId] = this.margin + (this.spacing + this.tileheight)	* ~~(tileId / this.hTileCount);
 			}
-			return this.tileYOffset[tileId];
+			return offset;
 		},
 
 

@@ -6,6 +6,7 @@
 .DS_Store
 Thumbs.db
 Desktop.ini
+npm-debug.log
 
 # project specific ignore
 add-on/
@@ -16,3 +17,7 @@ docs/*
 
 # Vim swap files
 *.sw*
+
+*.sublime-project
+
+melonjs.sublime-workspace

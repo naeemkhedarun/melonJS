@@ -5,15 +5,15 @@
  *
  */
 
-(function($, game) {
+(function(window) {
 	
 	/**
 	 * a generic Color Layer Object
 	 * @class
 	 * @memberOf me
 	 * @constructor
-	 * @param {name}    name    layer name
-	 * @param {String}  color   in hexadecimal "#RRGGBB" format
+	 * @param {String}  name    layer name
+	 * @param {String}  color   a CSS color value
 	 * @param {int}     z       z position
 	 */
 	 me.ColorLayer = me.Renderable.extend({
@@ -26,14 +26,13 @@
 			
 			this.opacity = 1.0;
 			
-			this.floating = true;
-			
-			this.parent(new me.Vector2d(0, 0), game.viewport.width, game.viewport.height);
+			this.parent(new me.Vector2d(0, 0), Infinity, Infinity);
+
 		},
 
 		/**
 		 * reset function
-		 * @private
+		 * @ignore
 		 * @function
 		 */
 		reset : function() {
@@ -42,6 +41,9 @@
 
 		/**
 		 * get the layer alpha channel value<br>
+		 * @name getOpacity
+		 * @memberOf me.ColorLayer
+		 * @function
 		 * @return current opacity value between 0 and 1
 		 */
 		getOpacity : function() {
@@ -50,7 +52,10 @@
 
 		/**
 		 * set the layer alpha channel value<br>
-		 * @param {alpha} alpha opacity value between 0 and 1
+		 * @name setOpacity
+		 * @memberOf me.ColorLayer
+		 * @function
+		 * @param {Number} alpha opacity value between 0 and 1
 		 */
 		setOpacity : function(alpha) {
 			if (typeof(alpha) === "number") {
@@ -60,7 +65,7 @@
 
 		/**
 		 * update function
-		 * @private
+		 * @ignore
 		 * @function
 		 */
 		update : function() {
@@ -69,7 +74,7 @@
 
 		/**
 		 * draw the color layer
-		 * @private
+		 * @ignore
 		 */
 		draw : function(context, rect) {
 			// set layer opacity
@@ -93,12 +98,12 @@
 	 * @class
 	 * @memberOf me
 	 * @constructor
-	 * @param {name}   name        layer name
+	 * @param {String} name        layer name
 	 * @param {int}    width       layer width in pixels 
 	 * @param {int}    height      layer height in pixels
 	 * @param {String} image       image name (as defined in the asset list)
 	 * @param {int}    z           z position
-	 * @param {float}  [ratio=1.0]   scrolling ratio to be applied
+	 * @param {me.Vector2d}  [ratio=1.0]   scrolling ratio to be applied
 	 */
 	 me.ImageLayer = me.Renderable.extend({
 		
@@ -119,16 +124,19 @@
 		/**
 		 * Define the image scrolling ratio<br>
 		 * Scrolling speed is defined by multiplying the viewport delta position (e.g. followed entity) by the specified ratio<br>
-		 * Default value : 1.0 <br>
+		 * Default value : (1.0, 1.0) <br>
+		 * To specify a value through Tiled, use one of the following format : <br> 
+		 * - a number, to change the value for both axis <br>
+		 * - a json expression like `json:{"x":0.5,"y":0.5}` if you wish to specify a different value for both x and y
 		 * @public
-		 * @type float
+		 * @type me.Vector2d
 		 * @name me.ImageLayer#ratio
 		 */
-		ratio: 1.0,
+		ratio: new me.Vector2d(1.0, 1.0),
 	 
 		/**
 		 * constructor
-		 * @private
+		 * @ignore
 		 * @function
 		 */
 		init: function(name, width, height, imagesrc, z, ratio) {
@@ -147,15 +155,29 @@
 			// displaying order
 			this.z = z;
 			
-			// if ratio !=0 scrolling image
-			this.ratio = ratio || 1.0;
+			// default ratio for parallax
+			this.ratio.set(1.0, 1.0);
+
+			if (ratio) {
+				// little hack for backward compatiblity
+				if (typeof(ratio) === "number") {
+					this.ratio.set(ratio, ratio);
+				} else /* vector */ {
+					this.ratio.setV(ratio);
+				}
+			}
+
+			
+			// a cached reference to the viewport
+			this.viewport = me.game.viewport;
 			
 			// last position of the viewport
-			this.lastpos = game.viewport.pos.clone();
+			this.lastpos = this.viewport.pos.clone();
+			
 			
 			// set layer width & height 
-			width  = width ? Math.min(game.viewport.width, width)   : game.viewport.width;
-			height = height? Math.min(game.viewport.height, height) : game.viewport.height;
+			width  = width ? Math.min(this.viewport.width, width)   : this.viewport.width;
+			height = height? Math.min(this.viewport.height, height) : this.viewport.height;
 			this.parent(new me.Vector2d(0, 0), width, height);
 			
 			// default opacity
@@ -196,13 +218,15 @@
 					}
 				}
 			});
-
+			
+			// default origin position
+			this.anchorPoint.set(0, 0);
 			
 		},
 		
 		/**
 		 * reset function
-		 * @private
+		 * @ignore
 		 * @function
 		 */
 		reset : function() {
@@ -214,6 +238,9 @@
 
 		/**
 		 * get the layer alpha channel value<br>
+		 * @name getOpacity
+		 * @memberOf me.ImageLayer
+		 * @function
 		 * @return current opacity value between 0 and 1
 		 */
 		getOpacity : function() {
@@ -222,7 +249,10 @@
 
 		/**
 		 * set the layer alpha channel value<br>
-		 * @param {alpha} alpha opacity value between 0 and 1
+		 * @name setOpacity
+		 * @memberOf me.ImageLayer
+		 * @function
+		 * @param {Number} alpha opacity value between 0 and 1
 		 */
 		setOpacity : function(alpha) {
 			if (typeof(alpha) === "number") {
@@ -232,23 +262,23 @@
 		
 		/**
 		 * update function
-		 * @private
+		 * @ignore
 		 * @function
 		 */
 		update : function() {
-			if (this.ratio===0) {
+			if (0 === this.ratio.x && 0 === this.ratio.y) {
 				// static image
 				return false;
 			}
 			else {
 				// reference to the viewport
-				var vpos = game.viewport.pos;
+				var vpos = this.viewport.pos;
 				// parallax / scrolling image
 				if (!this.lastpos.equals(vpos)) {
 					// viewport changed
-					this.pos.x += ((vpos.x - this.lastpos.x) * this.ratio) % this.imagewidth;
+					this.pos.x += ((vpos.x - this.lastpos.x) * this.ratio.x) % this.imagewidth;
 					this.pos.x = (this.imagewidth + this.pos.x) % this.imagewidth;
-					this.pos.y += ((vpos.y - this.lastpos.y) * this.ratio) % this.imageheight;
+					this.pos.y += ((vpos.y - this.lastpos.y) * this.ratio.y) % this.imageheight;
 					this.pos.y = (this.imageheight + this.pos.y) % this.imageheight;
 					this.lastpos.setV(vpos);
 					return true;
@@ -260,19 +290,25 @@
 
 		/**
 		 * draw the image layer
-		 * @private
+		 * @ignore
 		 */
 		draw : function(context, rect) {
+			// save current context state
+			context.save();
 			
-			// check if transparency
-			if (this.opacity < 1.0) {
-				// set the layer alpha value
-				var _alpha = context.globalAlpha
-				context.globalAlpha = this.opacity;
+			// translate default position using the anchorPoint value
+			if (this.anchorPoint.y !==0 || this.anchorPoint.x !==0) {
+				context.translate (
+					~~(this.anchorPoint.x * (this.viewport.width - this.imagewidth)),
+					~~(this.anchorPoint.y * (this.viewport.height - this.imageheight))
+				)
 			}
 			
+			// set the layer alpha value
+			context.globalAlpha = this.opacity;
+			
 			// if not scrolling ratio define, static image
-			if (this.ratio===0) {
+			if (0 === this.ratio.x && 0 === this.ratio.y){
 				// static image
 				var sw = Math.min(rect.width, this.imagewidth);
 				var sh = Math.min(rect.height, this.imageheight);
@@ -322,9 +358,7 @@
 			}
 			
 			// restore context state
-			if (this.opacity < 1.0) {
-				context.globalAlpha = _alpha;
-			}
+			context.restore();
 		}
 	});	
 	
@@ -332,7 +366,7 @@
 	/**
 	 * a generic collision tile based layer object
 	 * @memberOf me
-	 * @private
+	 * @ignore
 	 * @constructor
 	 */
 	me.CollisionTiledLayer = me.Renderable.extend({
@@ -350,7 +384,7 @@
 	
 		/**
 		 * reset function
-		 * @private
+		 * @ignore
 		 * @function
 		 */
 		reset : function() {
@@ -361,17 +395,22 @@
 
 	/**
 	 * a TMX Tile Layer Object
-	 * Tile QT 0.7.x format
+	 * Tiled QT 0.7.x format
 	 * @class
 	 * @memberOf me
 	 * @constructor
+	 * @param {Number} tilewidth width of each tile in pixels
+	 * @param {Number} tileheight height of each tile in pixels
+	 * @param {String} orientation "isometric" or "orthogonal"
+	 * @param {me.TMXTilesetGroup} tilesets tileset as defined in Tiled
+	 * @param {Number} zOrder layer z-order
 	 */
 	me.TMXLayer = me.Renderable.extend({
 		
 		// the layer data array
 		layerData : null,
 		
-		// constructor
+		/** @ignore */
 		init: function(tilewidth, tileheight, orientation, tilesets, zOrder) {
 
 			// tile width & height
@@ -398,6 +437,7 @@
 			this.parent(new me.Vector2d(0, 0), 0, 0);
 		},
 		
+		/** @ignore */
 		initFromXML: function(layer) {
 			
 			// additional TMX flags
@@ -415,7 +455,7 @@
 			me.TMXUtils.applyTMXPropertiesFromXML(this, layer);
 			
 			// check for the correct rendering method
-			if (this.preRender === undefined) {
+			if (typeof (this.preRender) == 'undefined') {
 				this.preRender = me.sys.preRender;
 			}
 			
@@ -427,18 +467,18 @@
 			}
 
 
-
 			// if pre-rendering method is use, create the offline canvas
-			if (this.preRender) {
+			if (this.preRender === true) {
 				this.layerCanvas = me.video.createCanvas(this.cols * this.tilewidth, this.rows * this.tileheight);
-				this.layerSurface = this.layerCanvas.getContext('2d');
-					
+				this.layerSurface = me.video.getContext2d(this.layerCanvas);
+
 				// set alpha value for this layer
 				this.layerSurface.globalAlpha = this.opacity;
 			}	
 
 		},
 		
+		/** @ignore */
 		initFromJSON: function(layer) {
 			// additional TMX flags
 			this.name = layer[me.TMX_TAG_NAME];
@@ -456,10 +496,10 @@
 			me.TMXUtils.applyTMXPropertiesFromJSON(this, layer);
 			
 			// check for the correct rendering method
-			if (this.preRender === undefined) {
+			if (typeof (this.preRender) == 'undefined') {
 				this.preRender = me.sys.preRender;
 			}
-			
+
 			// detect if the layer is a collision map
 			this.isCollisionMap = (this.name.toLowerCase().contains(me.COLLISION_LAYER));
 			if (this.isCollisionMap && !me.debug.renderCollisionMap) {
@@ -468,10 +508,10 @@
 			}
 
 			// if pre-rendering method is use, create the offline canvas
-			if (this.preRender) {
+			if (this.preRender === true) {
 				this.layerCanvas = me.video.createCanvas(this.cols * this.tilewidth, this.rows * this.tileheight);
-				this.layerSurface = this.layerCanvas.getContext('2d');
-					
+				this.layerSurface = me.video.getContext2d(this.layerCanvas);
+				
 				// set alpha value for this layer
 				this.layerSurface.globalAlpha = this.opacity;
 			}	
@@ -480,7 +520,7 @@
 		
 		/**
 		 * reset function
-		 * @private
+		 * @ignore
 		 * @function
 		 */
 		reset : function() {
@@ -499,7 +539,7 @@
 		
 		/**
 		 * set the layer renderer
-		 * @private
+		 * @ignore
 		 */
 		setRenderer : function(renderer) {
 			this.renderer = renderer;
@@ -507,7 +547,7 @@
 		
 		/**
 		 * Create all required arrays
-		 * @private
+		 * @ignore
 		 */
 		initArray : function(w, h) {
 			// initialize the array
@@ -524,7 +564,8 @@
 
 		/**
 		 * Return the TileId of the Tile at the specified position
-		 * @name me.TMXLayer#getTileId
+		 * @name getTileId
+		 * @memberOf me.TMXLayer
 		 * @public
 		 * @function
 		 * @param {Integer} x x coordinate in pixel 
@@ -538,7 +579,8 @@
 		
 		/**
 		 * Return the Tile object at the specified position
-		 * @name me.TMXLayer#getTile
+		 * @name getTile
+		 * @memberOf me.TMXLayer
 		 * @public
 		 * @function
 		 * @param {Integer} x x coordinate in pixel 
@@ -551,7 +593,8 @@
 
 		/**
 		 * Create a new Tile at the specified position
-		 * @name me.TMXLayer#setTile
+		 * @name setTile
+		 * @memberOf me.TMXLayer
 		 * @public
 		 * @function
 		 * @param {Integer} x x coordinate in tile 
@@ -582,7 +625,8 @@
 		
 		/**
 		 * clear the tile at the specified position
-		 * @name me.TMXLayer#clearTile
+		 * @name clearTile
+		 * @memberOf me.TMXLayer
 		 * @public
 		 * @function
 		 * @param {Integer} x x position 
@@ -602,8 +646,11 @@
 		
 		/**
 		 * get the layer alpha channel value
-		 * @name me.TMXLayer#getOpacity
-		 * @return current opacity value between 0 and 1
+		 * @name getOpacity
+		 * @memberOf me.TMXLayer
+		 * @public
+		 * @function
+		 * @return {Number} current opacity value between 0 and 1
 		 */
 		getOpacity : function() {
 			return this.opacity;
@@ -611,8 +658,11 @@
 
 		/**
 		 * set the layer alpha channel value
-		 * @name me.TMXLayer#setOpacity
-		 * @param {alpha} alpha opacity value between 0 and 1
+		 * @name setOpacity
+		 * @memberOf me.TMXLayer
+		 * @public
+		 * @function
+		 * @param {Number} alpha opacity value between 0 and 1
 		 */
 		setOpacity : function(alpha) {
 			if (typeof(alpha) === "number") {
@@ -626,7 +676,7 @@
 
 		/**
 		 * a dummy update function
-		 * @private
+		 * @ignore
 		 */
 		update : function() {
 			return false;
@@ -634,13 +684,10 @@
 		
 		/**
 		 * draw a tileset layer
-		 * @private
+		 * @ignore
 		 */
 		draw : function(context, rect) {
-			
-			// get a reference to the viewport
-			var vpos = game.viewport.pos;
-			
+						
 			// use the offscreen canvas
 			if (this.preRender) {
 			
@@ -649,11 +696,11 @@
 			
 				// draw using the cached canvas
 				context.drawImage(this.layerCanvas, 
-								  vpos.x + rect.pos.x, //sx
-								  vpos.y + rect.pos.y, //sy
+								  rect.pos.x, //sx
+								  rect.pos.y, //sy
 								  width, height,    //sw, sh
-								  vpos.x + rect.pos.x, //dx
-								  vpos.y + rect.pos.y, //dy
+								  rect.pos.x, //dx
+								  rect.pos.y, //dy
 								  width, height);   //dw, dh
 			}
 			// dynamically render the layer
@@ -663,7 +710,7 @@
 				context.globalAlpha = this.opacity;
 
 				// draw the layer
-				this.renderer.drawTileLayer(context, this, vpos, rect);
+				this.renderer.drawTileLayer(context, this, rect);
 				
 				// restore context to initial state
 				context.globalAlpha = _alpha;
@@ -674,4 +721,4 @@
 	/*---------------------------------------------------------*/
 	// END END END
 	/*---------------------------------------------------------*/
-})(window, me.game);
+})(window);

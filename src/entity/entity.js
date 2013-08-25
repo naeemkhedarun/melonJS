@@ -10,11 +10,11 @@
 	/**
 	 * me.ObjectSettings contains the object attributes defined in Tiled<br>
 	 * and is created by the engine and passed as parameter to the corresponding object when loading a level<br>
-	 * the field marked Mandatory are to be defined either in Tiled, or in the before calling the parent constructor
-	 * <img src="object_properties.png"/><br>
-	 * @final
+	 * the field marked Mandatory are to be defined either in Tiled, or in the before calling the parent constructor<br>
+	 * <img src="images/object_properties.png"/><br>
+	 * @class
+	 * @protected
 	 * @memberOf me
-	 * @constructor Should not be called by the user.
 	 */
 	me.ObjectSettings = {
 		/**
@@ -22,7 +22,8 @@
 		 * as defined in the Tiled Object Properties
 		 * @public
 		 * @type String
-		 * @name me.ObjectSettings#name
+		 * @name name
+		 * @memberOf me.ObjectSettings
 		 */
 		name : null,
 
@@ -32,7 +33,8 @@
 		 * (in case of TiledObject, this field is automatically set)
 		 * @public
 		 * @type String
-		 * @name me.ObjectSettings#image
+		 * @name image
+		 * @memberOf me.ObjectSettings
 		 */
 		image : null,
 
@@ -41,8 +43,10 @@
 		 * OPTIONAL<br>
 		 * (using this option will imply processing time on the image)
 		 * @public
+		 * @deprecated Use PNG or GIF with transparency instead
 		 * @type String
-		 * @name me.ObjectSettings#transparent_color
+		 * @name transparent_color
+		 * @memberOf me.ObjectSettings
 		 */
 		transparent_color : null,
 
@@ -52,7 +56,8 @@
 		 * (in case of TiledObject, this field is automatically set)
 		 * @public
 		 * @type Int
-		 * @name me.ObjectSettings#spritewidth
+		 * @name spritewidth
+		 * @memberOf me.ObjectSettings
 		 */
 		spritewidth : null,
 
@@ -63,7 +68,8 @@
 		 * (in case of TiledObject, this field is automatically set)
 		 * @public
 		 * @type Int
-		 * @name me.ObjectSettings#spriteheight
+		 * @name spriteheight
+		 * @memberOf me.ObjectSettings
 		 */
 		spriteheight : null,
 
@@ -82,19 +88,18 @@
 	 * A pool of Object entity <br>
 	 * This object is used for object pooling - a technique that might speed up your game
 	 * if used properly. <br>
-	 * If some of your classes will be instanciated and removed a lot at a time, it is a 
+	 * If some of your classes will be instantiated and removed a lot at a time, it is a
 	 * good idea to add the class to this entity pool. A separate pool for that class
-	 * will be created, which will reuse objects of the class. That way they won't be instanciated
+	 * will be created, which will reuse objects of the class. That way they won't be instantiated
 	 * each time you need a new one (slowing your game), but stored into that pool and taking one
-	 * already instanciated when you need it.<br><br>
-	 * This object is also used by the engine to instanciate objects defined in the map, 
-	 * which means, that on level loading the engine will try to instanciate every object 
+	 * already instantiated when you need it.<br><br>
+	 * This object is also used by the engine to instantiate objects defined in the map,
+	 * which means, that on level loading the engine will try to instantiate every object
 	 * found in the map, based on the user defined name in each Object Properties<br>
-	 * <img src="object_properties.png"/><br>
+	 * <img src="images/object_properties.png"/><br>
 	 * There is no constructor function for me.entityPool, this is a static object
-	 * @final
+	 * @namespace me.entityPool
 	 * @memberOf me
-	 * @constructor Should not be called by the user.
 	 */
 	me.entityPool = (function() {
 		// hold public stuff in our singletong
@@ -129,13 +134,14 @@
 		/**
 		 * Add an object to the pool. <br>
 		 * Pooling must be set to true if more than one such objects will be created. <br>
-		 * (note) If pooling is enabled, you shouldn't instanciate objects with `new`.
+		 * (note) If pooling is enabled, you shouldn't instantiate objects with `new`.
 		 * See examples in {@link me.entityPool#newInstanceOf}
-		 * @name me.entityPool#add
+		 * @name add
+		 * @memberOf me.entityPool
 		 * @public
 		 * @function
-		 * @param {String} className as defined in the Name fied of the Object Properties (in Tiled)
-		 * @param {Object} class corresponding Class to be instanciated
+		 * @param {String} className as defined in the Name field of the Object Properties (in Tiled)
+		 * @param {Object} class corresponding Class to be instantiated
 		 * @param {Boolean} [objectPooling=false] enables object pooling for the specified class
 		 * - speeds up the game by reusing existing objects
 		 * @example
@@ -147,7 +153,10 @@
 		 */
 		obj.add = function(className, entityObj, pooling) {
 			if (!pooling) {
-				entityClass[className.toLowerCase()] = entityObj;
+				entityClass[className.toLowerCase()] = {
+					"class" : entityObj,
+					"pool" : undefined
+				};
 				return;
 			}
 
@@ -159,12 +168,13 @@
 		};
 
 		/**
-		 *	Return a new instance of the requested object (if added into the object pool)
-		 * @name me.entityPool#newInstanceOf
+		 * Return a new instance of the requested object (if added into the object pool)
+		 * @name newInstanceOf
+		 * @memberOf me.entityPool
 		 * @public
 		 * @function
-		 * @param {String} className as used in me.entityPool#add
-		 * @params {arguments} [arguments] to be passed when instanciating/reinitializing the object
+		 * @param {String} className as used in {@link me.entityPool#add}
+		 * @param {} [arguments...] arguments to be passed when instantiating/reinitializing the object
 		 * @example
 		 * me.entityPool.add("player", PlayerEntity);
 		 * var player = me.entityPool.newInstanceOf("player");
@@ -189,7 +199,7 @@
 			var name = typeof data === 'string' ? data.toLowerCase() : undefined;
 			if (name && entityClass[name]) {
 				if (!entityClass[name]['pool']) {
-					var proto = entityClass[name];
+					var proto = entityClass[name]["class"];
 					arguments[0] = proto;
 					return new (proto.bind.apply(proto, arguments))();
 				}
@@ -209,7 +219,7 @@
 			}
 
 			// Tile objects can be created with a GID attribute;
-			// The TMX parser will use it to create the image dataerty.
+			// The TMX parser will use it to create the image property.
 			var settings = arguments[3];
 			if (settings && settings.image) {
 				return new me.SpriteObject(settings.x, settings.y, settings.image);
@@ -222,10 +232,11 @@
 		};
 
 		/**
-		 * purge the entity pool from any unactive object <br>
+		 * purge the entity pool from any inactive object <br>
 		 * Object pooling must be enabled for this function to work<br>
 		 * note: this will trigger the garbage collector
-		 * @name me.entityPool#purge
+		 * @name purge
+		 * @memberOf me.entityPool
 		 * @public
 		 * @function
 		 */
@@ -238,9 +249,10 @@
 		/**
 		 * Remove object from the entity pool <br>
 		 * Object pooling for the object class must be enabled,
-		 * and object must have been instanciated using {@link me.entityPool#newInstanceOf},
+		 * and object must have been instantiated using {@link me.entityPool#newInstanceOf},
 		 * otherwise this function won't work
-		 * @name me.entityPool#freeInstance
+		 * @name freeInstance
+		 * @memberOf me.entityPool
 		 * @public
 		 * @function
 		 * @param {Object} instance to be removed 
@@ -249,7 +261,6 @@
 
 			var name = obj.className;
 			if (!name || !entityClass[name]) {
-				//console.error("Cannot free object: unknown class");
 				return;
 			}
 
@@ -263,7 +274,6 @@
 			}
 
 			if (notFound) {
-				//console.error("Cannot free object: not found in the active pool");
 				return;
 			}
 
@@ -287,12 +297,12 @@
 	 * or when calling the parent constructor
 	 *
 	 * @class
-	 * @extends me.Rect
+	 * @extends me.Renderable
 	 * @memberOf me
 	 * @constructor
 	 * @param {int} x the x coordinates of the sprite object
 	 * @param {int} y the y coordinates of the sprite object
-	 * @param {me.ObjectSettings} settings Object Properties as defined in Tiled <br> <img src="object_properties.png"/>
+	 * @param {me.ObjectSettings} settings Object Properties as defined in Tiled <br> <img src="images/object_properties.png"/>
 	 */
 	me.ObjectEntity = me.Renderable.extend(
 	/** @scope me.ObjectEntity.prototype */ {
@@ -301,7 +311,8 @@
 		 * Entity "Game Unique Identifier"<br>
 		 * @public
 		 * @type String
-		 * @name me.ObjectEntity#GUID
+		 * @name GUID
+		 * @memberOf me.ObjectEntity
 		 */
 		GUID : null,
 
@@ -310,7 +321,8 @@
 		 * default value : none<br>
 		 * @public
 		 * @type String
-		 * @name me.ObjectEntity#type
+		 * @name type
+		 * @memberOf me.ObjectEntity
 		 */
 		type : 0,
 
@@ -319,7 +331,8 @@
 		 * default value : 0xFFFFFFFF<br>
 		 * @public
 		 * @type Number
-		 * @name me.ObjectEntity#collisionMask
+		 * @name collisionMask
+		 * @memberOf me.ObjectEntity
 		 */
 		collisionMask : 0xFFFFFFFF,
 
@@ -327,7 +340,8 @@
 		 * Entity collision Box<br>
 		 * @public
 		 * @type me.Rect
-		 * @name me.ObjectEntity#collisionBox
+		 * @name collisionBox
+		 * @memberOf me.ObjectEntity
 		 */
 		collisionBox : null,
 
@@ -343,15 +357,17 @@
 		 * The entity renderable object (if defined)
 		 * @public
 		 * @type me.Renderable
-		 * @name me.ObjectEntity#renderable
+		 * @name renderable
+		 * @memberOf me.ObjectEntity
 		 */
 		renderable : null,
 		
-		// z position (for ordering display)
-		z : 0,
+		// just to keep track of when we flip
+		lastflipX : false,
+		lastflipY : false,
 		
 		
-		/** @private */
+		/** @ignore */
 		init : function(x, y, settings) {
 			
 			// call the parent constructor
@@ -383,7 +399,8 @@
 			 * entity current velocity<br>
 			 * @public
 			 * @type me.Vector2d
-			 * @name me.ObjectEntity#vel
+			 * @name vel
+			 * @memberOf me.ObjectEntity
 			 */
 			this.vel = new me.Vector2d();
 
@@ -391,15 +408,16 @@
 			 * entity current acceleration<br>
 			 * @public
 			 * @type me.Vector2d
-			 * @name me.ObjectEntity#accel
+			 * @name accel
+			 * @memberOf me.ObjectEntity
 			 */
 			this.accel = new me.Vector2d();
 
 			/**
 			 * entity current friction<br>
 			 * @public
-			 * @type me.Vector2d
-			 * @name me.ObjectEntity#friction
+			 * @name friction
+			 * @memberOf me.ObjectEntity
 			 */
 			this.friction = new me.Vector2d();
 
@@ -407,7 +425,8 @@
 			 * max velocity (to limit entity velocity)<br>
 			 * @public
 			 * @type me.Vector2d
-			 * @name me.ObjectEntity#maxVel
+			 * @name maxVel
+			 * @memberOf me.ObjectEntity
 			 */
 			this.maxVel = new me.Vector2d(1000,1000);
 
@@ -420,7 +439,8 @@
 			 * @public
 			 * @see me.sys.gravity
 			 * @type Number
-			 * @name me.ObjectEntity#gravity
+			 * @name gravity
+			 * @memberOf me.ObjectEntity
 			 */
 			this.gravity = (me.sys.gravity!=undefined)?me.sys.gravity:0.98;
 
@@ -433,7 +453,8 @@
 			 * default value : true
 			 * @public
 			 * @type Boolean
-			 * @name me.ObjectEntity#alive
+			 * @name alive
+			 * @memberOf me.ObjectEntity
 			 */
 			this.alive = true;
 			
@@ -450,19 +471,21 @@
 			 * falling state of the object<br>
 			 * true if the object is falling<br>
 			 * false if the object is standing on something<br>
-			 * @readonly property
+			 * @readonly
 			 * @public
 			 * @type Boolean
-			 * @name me.ObjectEntity#falling
+			 * @name falling
+			 * @memberOf me.ObjectEntity
 			 */
 			this.falling = false;
 			/**
 			 * jumping state of the object<br>
 			 * equal true if the entity is jumping<br>
-			 * @readonly property
+			 * @readonly
 			 * @public
 			 * @type Boolean
-			 * @name me.ObjectEntity#jumping
+			 * @name jumping
+			 * @memberOf me.ObjectEntity
 			 */
 			this.jumping = true;
 
@@ -470,33 +493,35 @@
 			this.slopeY = 0;
 			/**
 			 * equal true if the entity is standing on a slope<br>
-			 * @readonly property
+			 * @readonly
 			 * @public
 			 * @type Boolean
-			 * @name me.ObjectEntity#onslope
+			 * @name onslope
+			 * @memberOf me.ObjectEntity
 			 */
 			this.onslope = false;
 			/**
 			 * equal true if the entity is on a ladder<br>
-			 * @readonly property
+			 * @readonly
 			 * @public
 			 * @type Boolean
-			 * @name me.ObjectEntity#onladder
+			 * @name onladder
+			 * @memberOf me.ObjectEntity
 			 */
 			this.onladder = false;
 			/**
 			 * equal true if the entity can go down on a ladder<br>
-			 * @readonly property
+			 * @readonly
 			 * @public
 			 * @type Boolean
-			 * @name me.ObjectEntity#disableTopLadderCollision
+			 * @name disableTopLadderCollision
+			 * @memberOf me.ObjectEntity
 			 */
 			this.disableTopLadderCollision = false;
 
-			// to enable collision detection			
+			// to enable collision detection
 			this.collisionMask = typeof(settings.collisionMask) !== "undefined" ?
 				settings.collisionMask : 0xFFFFFFFF;
-			//this.collectable = false;
 
 			// create a default collision rectangle
 			this.collisionBox = new me.Rect(this.pos, this.width, this.height);
@@ -521,15 +546,17 @@
 			 * default value : false<br>
 			 * @public
 			 * @type Boolean
-			 * @name me.ObjectEntity#canBreakTile
+			 * @name canBreakTile
+			 * @memberOf me.ObjectEntity
 			 */
 			this.canBreakTile = false;
 
 			/**
 			 * a callback when an entity break a tile<br>
 			 * @public
-			 * @type Function
-			 * @name me.ObjectEntity#onTileBreak
+			 * @callback
+			 * @name onTileBreak
+			 * @memberOf me.ObjectEntity
 			 */
 			this.onTileBreak = null;
 		},
@@ -538,7 +565,10 @@
 		 * specify the size of the hit box for collision detection<br>
 		 * (allow to have a specific size for each object)<br>
 		 * e.g. : object with resized collision box :<br>
-		 * <img src="me.Rect.colpos.png"/>
+		 * <img src="images/me.Rect.colpos.png"/>
+		 * @name updateColRect
+		 * @memberOf me.ObjectEntity
+		 * @function
 		 * @param {int} x x offset (specify -1 to not change the width)
 		 * @param {int} w width of the hit box
 		 * @param {int} y y offset (specify -1 to not change the height)
@@ -552,6 +582,9 @@
 		/**
 		 * set the entity default velocity<br>
 		 * note : velocity is by default limited to the same value, see setMaxVelocity if needed<br>
+		 * @name setVelocity
+		 * @memberOf me.ObjectEntity
+		 * @function
 		 * @param {Int} x velocity on x axis
 		 * @param {Int} y velocity on y axis
 		 * @protected
@@ -566,6 +599,9 @@
 
 		/**
 		 * cap the entity velocity to the specified value<br>
+		 * @name setMaxVelocity
+		 * @memberOf me.ObjectEntity
+		 * @function
 		 * @param {Int} x max velocity on x axis
 		 * @param {Int} y max velocity on y axis
 		 * @protected
@@ -577,6 +613,9 @@
 
 		/**
 		 * set the entity default friction<br>
+		 * @name setFriction
+		 * @memberOf me.ObjectEntity
+		 * @function
 		 * @param {Int} x horizontal friction
 		 * @param {Int} y vertical friction
 		 * @protected
@@ -587,16 +626,19 @@
 		},
 		
 		/**
-		 *	Flip object on horizontal axis
-		 *	@param {Boolean} flip enable/disable flip
+		 * Flip object on horizontal axis
+		 * @name flipX
+		 * @memberOf me.ObjectEntity
+		 * @function
+		 * @param {Boolean} flip enable/disable flip
 		 */
 		flipX : function(flip) {
 			if (flip != this.lastflipX) {
-				if (this.renderable) {
+				this.lastflipX = flip;
+				if (this.renderable && this.renderable.flipX) {
 					// flip the animation
 					this.renderable.flipX(flip);
 				}
-
 				// flip the collision box
 				this.collisionBox.flipX(this.width);
 				this._collision.range.flipX(this.width);
@@ -604,12 +646,16 @@
 		},
 
 		/**
-		 *	Flip object on vertical axis
-		 *	@param {Boolean} flip enable/disable flip
+		 * Flip object on vertical axis
+		 * @name flipY
+		 * @memberOf me.ObjectEntity
+		 * @function
+		 * @param {Boolean} flip enable/disable flip
 		 */
 		flipY : function(flip) {
 			if (flip != this.lastflipY) {
-				if (this.renderable) {
+				this.lastflipY = flip;
+				if (this.renderable  && this.renderable.flipY) {
 					// flip the animation
 					this.renderable.flipY(flip);
 				}
@@ -623,8 +669,12 @@
 		/**
 		 * helper function for platform games: <br>
 		 * make the entity move left of right<br>
+		 * @name doWalk
+		 * @memberOf me.ObjectEntity
+		 * @function
 		 * @param {Boolean} left will automatically flip horizontally the entity sprite
 		 * @protected
+		 * @deprecated
 		 * @example
 		 * if (me.input.isKeyPressed('left'))
 		 * {
@@ -644,8 +694,12 @@
 		 * helper function for platform games: <br>
 		 * make the entity move up and down<br>
 		 * only valid is the player is on a ladder
+		 * @name doClimb
+		 * @memberOf me.ObjectEntity
+		 * @function
 		 * @param {Boolean} up will automatically flip vertically the entity sprite
 		 * @protected
+		 * @deprecated
 		 * @example
 		 * if (me.input.isKeyPressed('up'))
 		 * {
@@ -671,7 +725,11 @@
 		/**
 		 * helper function for platform games: <br>
 		 * make the entity jump<br>
+		 * @name doJump
+		 * @memberOf me.ObjectEntity
+		 * @function
 		 * @protected
+		 * @deprecated
 		 */
 		doJump : function() {
 			// only jump if standing
@@ -686,7 +744,11 @@
 		/**
 		 * helper function for platform games: <br>
 		 * force to the entity to jump (for double jump)<br>
+		 * @name forceJump
+		 * @memberOf me.ObjectEntity
+		 * @function
 		 * @protected
+		 * @deprecated
 		 */
 		forceJump : function() {
 			this.jumping = this.falling = false;
@@ -696,6 +758,9 @@
 
 		/**
 		 * return the distance to the specified entity
+		 * @name distanceTo
+		 * @memberOf me.ObjectEntity
+		 * @function
 		 * @param {me.ObjectEntity} entity Entity
 		 * @return {float} distance
 		 */
@@ -710,6 +775,9 @@
 		
 		/**
 		 * return the distance to the specified point
+		 * @name distanceToPoint
+		 * @memberOf me.ObjectEntity
+		 * @function
 		 * @param {me.Vector2d} vector vector
 		 * @return {float} distance
 		 */
@@ -724,6 +792,9 @@
 		
 		/**
 		 * return the angle to the specified entity
+		 * @name angleTo
+		 * @memberOf me.ObjectEntity
+		 * @function
 		 * @param {me.ObjectEntity} entity Entity
 		 * @return {Number} angle in radians
 		 */
@@ -739,6 +810,9 @@
 		
 		/**
 		 * return the angle to the specified point
+		 * @name angleToPoint
+		 * @memberOf me.ObjectEntity
+		 * @function
 		 * @param {me.Vector2d} vector vector
 		 * @return {Number} angle in radians
 		 */
@@ -755,7 +829,7 @@
 		/**
 		 * handle the player movement on a slope
 		 * and update vel value
-		 * @private
+		 * @ignore
 		 */
 		checkSlope : function(tile, left) {
 
@@ -778,7 +852,7 @@
 
 		/**
 		 * compute the new velocity value
-		 * @private
+		 * @ignore
 		 */
 		computeVelocity : function(vel) {
 
@@ -809,7 +883,10 @@
 
 		/**
 		 * handle the player movement, "trying" to update his position<br>
-		 * @return {me.Vector2d} a collision vector FIXME
+		 * @name updateMovement
+		 * @memberOf me.ObjectEntity
+		 * @function
+		 * @return {me.Vector2d} a collision vector
 		 * @example
 		 * // make the player move
 		 * if (me.input.isKeyPressed('left'))
@@ -840,7 +917,7 @@
 		 *    else
 		 *       console.log("y axis : bottom side !");
 		 *
-		 *	  // display the tile type
+		 *    // display the tile type
 		 *    console.log(res.yprop.type)
 		 * }
 		 *
@@ -873,6 +950,9 @@
 		 * onCollision Event function<br>
 		 * called by the game manager when the object collides with another object.<br>
 		 * by default, if the object type is Collectable, the object is removed.
+		 * @name onCollision
+		 * @memberOf me.ObjectEntity
+		 * @function
 		 * @param {me.ObjectEntity} obj The second object that hit this object
 		 * @param {me.Vector2d} depth Collision depth
 		 * @return false to prevent default collision response
@@ -885,8 +965,8 @@
 				return false;
 			}
 		},
-
-		/** @private */
+		
+		/** @ignore */
 		update : function() {
 			if (this.renderable) {
 				return this.renderable.update();
@@ -895,7 +975,7 @@
 		},
 		
 		/**
-		 * @private	
+		 * @ignore	
 		 */
 		getRect : function() {
 			if (this.renderable) {
@@ -910,6 +990,9 @@
 		 * object draw<br>
 		 * not to be called by the end user<br>
 		 * called by the game manager on each game loop
+		 * @name draw
+		 * @memberOf me.ObjectEntity
+		 * @function
 		 * @protected
 		 * @param {Context2d} context 2d Context on which draw our object
 		 **/
@@ -929,22 +1012,27 @@
 			if (me.debug.renderHitBox && this.collisionBox) {
 				// draw the collisionBox
 				this.collisionBox.draw(context, "red");
-				
+			}
+			if (me.debug.renderVelocity) {
 				// draw entity current velocity
-				var x =  ~~(this.pos.x + this.hWidth);
-				var y =  ~~(this.pos.y + this.hHeight);
-				
+				var x = ~~(this.pos.x + this.hWidth);
+				var y = ~~(this.pos.y + this.hHeight);
+
+				context.strokeStyle = "blue";
 				context.lineWidth = 1;
 				context.beginPath();
-				context.moveTo(x , y);
-				context.lineTo(x +  ~~(this.vel.x * this.hWidth), y + ~~(this.vel.y * this.hHeight));
+				context.moveTo(x, y);
+				context.lineTo(
+					x + ~~(this.vel.x * this.hWidth),
+					y + ~~(this.vel.y * this.hHeight)
+				);
 				context.stroke();
 			}
 		},
 		
 		/**
 		 * Destroy function<br>
-		 * @private
+		 * @ignore
 		 */
 		destroy : function() {
 			// free some property objects
@@ -966,6 +1054,9 @@
 		/**
 		 * OnDestroy Notification function<br>
 		 * Called by engine before deleting the object
+		 * @name onDestroyEvent
+		 * @memberOf me.ObjectEntity
+		 * @function
 		 */
 		onDestroyEvent : function() {
 			;// to be extended !
@@ -991,7 +1082,7 @@
 	me.CollectableEntity = me.ObjectEntity.extend(
 	/** @scope me.CollectableEntity.prototype */
 	{
-		/** @private */
+		/** @ignore */
 		init : function(x, y, settings) {
 			// call the parent constructor
 			this.parent(x, y, settings);
@@ -1018,7 +1109,7 @@
 	me.LevelEntity = me.ObjectEntity.extend(
 	/** @scope me.LevelEntity.prototype */
 	{
-		/** @private */
+		/** @ignore */
 		init : function(x, y, settings) {
 			this.parent(x, y, settings);
 
@@ -1033,7 +1124,7 @@
 		},
 
 		/**
-		 * @private
+		 * @ignore
 		 */
 		onFadeComplete : function() {
 			me.levelDirector.loadLevel(this.gotolevel);
@@ -1042,6 +1133,10 @@
 
 		/**
 		 * go to the specified level
+		 * @name goTo
+		 * @memberOf me.LevelEntity
+		 * @function
+		 * @param {String} [level=this.nextlevel] name of the level to load
 		 * @protected
 		 */
 		goTo : function(level) {
@@ -1059,7 +1154,7 @@
 			}
 		},
 
-		/** @private */
+		/** @ignore */
 		onCollision : function() {
 			this.goTo();
 		}

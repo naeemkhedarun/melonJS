@@ -8,9 +8,8 @@
 
 	/**
 	 * There is no constructor function for me.plugin
-	 * @final
+	 * @namespace me.plugin
 	 * @memberOf me
-	 * @constructor Should not be called by the user.
 	 */
 	me.plugin = (function() {
 		
@@ -24,9 +23,10 @@
 		/**
 		* a base Object for plugin <br>
 		* plugin must be installed using the register function
-		* @see me.plugin#Base
+		* @see me.plugin
 		* @class
 		* @extends Object
+		* @name plugin.Base
 		* @memberOf me
 		* @constructor
 		*/
@@ -43,7 +43,7 @@
 			 */
 			version : undefined,
 			
-			/** @private */
+			/** @ignore */
 			init : function() {
 				; //empty for now !
 			}
@@ -52,7 +52,8 @@
 
 		/**
 		 * patch a melonJS function
-		 * @name me.plugin#patch
+		 * @name patch
+		 * @memberOf me.plugin
 		 * @public
 		 * @function
 		 * @param {Object} object target object
@@ -94,13 +95,14 @@
 
 		/**
 		 * Register a plugin.
-		 * @name me.plugin#register
-		 * @see me.plugin#Base
+		 * @name register
+		 * @memberOf me.plugin
+		 * @see me.plugin.Base
 		 * @public
 		 * @function
 		 * @param {me.plugin.Base} plugin Plugin to instiantiate and register
 		 * @param {String} name
-		 * @param {Object} [args] all extra parameters will be passed to the plugin constructor
+		 * @param {} [arguments...] all extra parameters will be passed to the plugin constructor
 		 * @example
 		 * // register a new plugin
 		 * me.plugin.register(TestPlugin, "testPlugin");

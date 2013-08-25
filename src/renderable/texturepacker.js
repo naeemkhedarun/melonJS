@@ -8,46 +8,76 @@
 (function($) {
 
 	/**
-	 * A Texture atlas object.
+	 * a local constant for the -(Math.PI / 2) value
+	 * @ignore
+	 */
+	var nhPI = -(Math.PI / 2);
+
+	/**
+	 * A Texture atlas object<br>
+	 * Currently support : <br>
+	 * - [TexturePacker]{@link http://www.codeandweb.com/texturepacker/} : through JSON export <br>
+	 * - [ShoeBox]{@link http://renderhjs.net/shoebox/} : through JSON export using the melonJS setting [file]{@link https://github.com/melonjs/melonJS/raw/master/media/shoebox_JSON_export.sbx}
 	 * @class
 	 * @extends Object
 	 * @memberOf me
 	 * @constructor
-	 * @param {Object} atlas atlas information
-	 * @param {Image} [texture] texture (texture name from the atlas will be used if not specified)
+	 * @param {Object} atlas atlas information. See {@link me.loader#getJSON}
+	 * @param {Image} [texture=atlas.meta.image] texture name
 	 * @example
 	 * // create a texture atlas
 	 * texture = new me.TextureAtlas (
-	 *    me.loader.getAtlas("texture"), 
+	 *    me.loader.getJSON("texture"), 
 	 *    me.loader.getImage("texture")
 	 * );
 	 */
 	me.TextureAtlas = Object.extend(
 	/** @scope me.TextureAtlas.prototype */
 	{
-		// to identify the atlas format (e.g. texture packer)
+		/**
+		 * to identify the atlas format (e.g. texture packer)
+		 * @ignore
+		 */
 		format: null,
 		
-		// the image texture itself
+		/**
+		 * the image texture itself
+		 * @ignore
+		 */
 		texture : null,		
 		
-		// the atlas dictionnary
+		/**
+		 * the atlas dictionnary
+		 * @ignore
+		 */
 		atlas: null,
 
 		/**
 		 * @ignore
 		 */
 		init : function(atlas, texture) {
-			if (atlas && atlas.meta && atlas.meta.app.contains("texturepacker")) {
-				this.format = "texturepacker";
-				// set the texture
-				if (texture===undefined) {
-					var name = me.utils.getBasename(atlas.meta.image);
-					this.texture = me.loader.getImage(name);
-					if (this.texture === null) {
-						throw "melonjs: Atlas texture '" + name + "' not found";
+			if (atlas && atlas.meta) {
+				// Texture Packer
+				if (atlas.meta.app.contains("texturepacker")) {
+					this.format = "texturepacker";
+					// set the texture
+					if (texture===undefined) {
+						var name = me.utils.getBasename(atlas.meta.image);
+						this.texture = me.loader.getImage(name);
+						if (this.texture === null) {
+							throw "melonjs: Atlas texture '" + name + "' not found";
+						}
+					} else {
+						this.texture = texture;
 					}
-				} else {
+				}
+				// ShoeBox
+				if (atlas.meta.app.contains("ShoeBox")) {
+					if (!atlas.meta.exporter || !atlas.meta.exporter.contains("melonJS")) {
+						throw "melonjs: ShoeBox requires the JSON exporter : https://github.com/melonjs/melonJS/tree/master/media/shoebox_JSON_export.sbx";
+					}
+					this.format = "ShoeBox";
+					// set the texture
 					this.texture = texture;
 				}
 				// initialize the atlas
@@ -61,46 +91,77 @@
 		},
 		
 		/**
-		 * @private
+		 * @ignore
 		 */
 		initFromTexturePacker : function (data) {
 			var atlas = {};
-			data['frames'].forEach(function(frame) {
-				
-				// check if the frame is rotated
-				if(frame['rotated']===true){
-					var w = frame['frame']['h'];
-					var h = frame['frame']['w'];
-				} else {
-					var w = frame['frame']['w'];
-					var h = frame['frame']['h'];
+			data.frames.forEach(function(frame) {
+				// fix wrongly formatted JSON (e.g. last dummy object in ShoeBox)
+				if (frame.hasOwnProperty("filename")) {
+					atlas[frame.filename] = {
+						frame: new me.Rect( 
+							new me.Vector2d(frame.frame.x, frame.frame.y),
+							frame.frame.w, frame.frame.h
+						),
+						source: new me.Rect(
+							new me.Vector2d(frame.spriteSourceSize.x, frame.spriteSourceSize.y),
+							frame.spriteSourceSize.w, frame.spriteSourceSize.h
+						),
+						// non trimmed size, but since we don't support trimming both value are the same
+						//sourceSize: new me.Vector2d(frame.sourceSize.w,frame.sourceSize.h),
+						rotated : frame.rotated===true,
+						trimmed : frame.trimmed===true
+					};
 				}
-				
-				atlas[frame.filename] = {
-					frame: new me.Rect( 
-						new me.Vector2d(frame['frame']['x'], frame['frame']['y']), w, h
-					),
-					source: new me.Rect(
-						new me.Vector2d(frame['spriteSourceSize']['x'], frame['spriteSourceSize']['y']), 
-						frame['spriteSourceSize']['w'], frame['spriteSourceSize']['h']
-					),
-					// non trimmed size, but since we don't support trimming both value are the same
-					//sourceSize: new me.Vector2d(frame['sourceSize']['w'],frame['sourceSize']['h']),
-					rotated : frame['rotated']===true,
-					trimmed : frame['trimmed']===true
-				};
 			});
 			return atlas;
 		},
 		
 		/**
+		 * return the Atlas texture
+		 * @name getTexture
+		 * @memberOf me.TextureAtlas
+		 * @function
+		 * @return {Image}
+		 */
+		getTexture : function() {
+			return this.texture;
+		},
+		
+		/**
+		 * return a normalized region/frame information for the specified sprite name
+		 * @name getRegion
+		 * @memberOf me.TextureAtlas
+		 * @function
+		 * @param {String} name name of the sprite
+		 * @return {Object}
+		 */
+		getRegion : function(name) {
+			var region = this.atlas[name];
+			if (region) {
+				return {
+					name: name, // frame name
+					pos: region.source.pos.clone(), // unused for now
+					offset: region.frame.pos.clone(),
+					width: region.frame.width,
+					height: region.frame.height,
+					angle : (region.rotated===true) ? nhPI : 0
+				}
+			}
+			return null;
+		},
+		
+		/**
 		 * Create a sprite object using the first region found using the specified name
-		 * @param {String} name of the sprite
+		 * @name createSpriteFromName
+		 * @memberOf me.TextureAtlas
+		 * @function
+		 * @param {String} name name of the sprite
 		 * @return {me.SpriteObject}
 		 * @example
 		 * // create a new texture atlas object under the `game` namespace
 		 * game.texture = new me.TextureAtlas(
-		 *    me.loader.getAtlas("texture"), 
+		 *    me.loader.getJSON("texture"), 
 		 *    me.loader.getImage("texture")
 		 * );
 		 * ...
@@ -111,12 +172,14 @@
 		 * this.anchorPoint.set(0.5, 1.0);
 		 */
 		createSpriteFromName : function(name) {
-			var tex = this.atlas[name];
-			if (tex) {
+			var region = this.getRegion(name);
+			if (region) {
 				// instantiate a new sprite object
-				var sprite = new me.SpriteObject(0,0, this.texture, tex.frame.width, tex.frame.height);
+				var sprite = new me.SpriteObject(0,0, this.getTexture(), region.width, region.height);
 				// set the sprite offset within the texture
-				sprite.offset.setV(tex.frame.pos);
+				sprite.offset.setV(region.offset);
+				// set angle if defined
+				sprite._sourceAngle = region.angle;
 				
 				/* -> when using anchor positioning, this is not required
 				   -> and makes final position wrong...
@@ -125,27 +188,24 @@
 					sprite.pos.add(tex.source.pos);
 				}
 				*/
-				
-				// check if we need rotation
-				if (tex.rotated===true) {
-					sprite.angle = - (Math.PI/2);
-					// >> sprite pos not correct when rotated ? <<
-				}
 				// return our object
 				return sprite;
 			}
 			// throw an error
-			throw "melonjs: TextureAtlas - region not found";
+			throw "melonjs: TextureAtlas - region for " + name + " not found";
 		},
 		
 		/**
 		 * Create an animation object using the first region found using all specified names
-		 * @param {String[]} names names of the sprite
+		 * @name createAnimationFromName
+		 * @memberOf me.TextureAtlas
+		 * @function
+		 * @param {String[]} names list of names for each sprite
 		 * @return {me.AnimationSheet}
 		 * @example
 		 * // create a new texture atlas object under the `game` namespace
 		 * game.texture = new me.TextureAtlas(
-		 *    me.loader.getAtlas("texture"), 
+		 *    me.loader.getJSON("texture"), 
 		 *    me.loader.getImage("texture")
 		 * );
 		 * ...
@@ -155,38 +215,32 @@
 		 *   "walk0001.png", "walk0002.png", "walk0003.png",
 		 *   "walk0004.png", "walk0005.png", "walk0006.png",
 		 *   "walk0007.png", "walk0008.png", "walk0009.png",
-		 *	 "walk0010.png", "walk0011.png"
+		 *   "walk0010.png", "walk0011.png"
 		 * ]);
 		 *
 		 * // define an additional basic walking animatin
-		 * this.renderable.addAnimation ("walk",  [0,2,1]);
-		 * // set as current animation
-		 * this.renderable.setCurrentAnimation("walk");
+		 * this.renderable.addAnimation ("simple_walk", [0,2,1]);
+		 * // you can also use frame name to define your animation
+		 * this.renderable.addAnimation ("speed_walk", ["walk0007.png", "walk0008.png", "walk0009.png", "walk0010.png"]);
+		 * // set the default animation
+		 * this.renderable.setCurrentAnimation("simple_walk");
 		 * // set the renderable position to bottom center
 		 * this.anchorPoint.set(0.5, 1.0);		 
 		 */
 		createAnimationFromName : function(names) {
-			var tpAtlas = [], count = 0;
+			var tpAtlas = [], indices = {};
 			// iterate through the given names 
 			// and create a "normalized" atlas
 			for (var i = 0; i < names.length;++i) {
-				var tex = this.atlas[names[i]];
-				if (tex) {
-					tpAtlas[count++] = {
-						pos: tex.source.pos.clone(), // unused for now
-						offset: tex.frame.pos.clone(),
-						width: tex.frame.width,
-						height: tex.frame.height,
-						angle : (tex.rotated===true) ? -(Math.PI/2) : 0
-					};
-				} else {
+				tpAtlas[i] = this.getRegion(names[i]);
+				indices[names[i]] = i;
+				if (tpAtlas[i] == null) {
 					// throw an error
 					throw "melonjs: TextureAtlas - region for " + names[i] + " not found";
 				}
 			}
-			
 			// instantiate a new animation sheet object
-			return new me.AnimationSheet(0,0, this.texture, 0, 0, 0, 0, tpAtlas);
+			return new me.AnimationSheet(0,0, this.texture, 0, 0, 0, 0, tpAtlas, indices);
 		}
 	});
 

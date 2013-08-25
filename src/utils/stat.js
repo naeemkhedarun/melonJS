@@ -15,7 +15,7 @@
 
 	/**
 	 * Item skeleton for game stat element
-	 * @private
+	 * @ignore
 	 */
 	function Stat_Item(val) {
 		this.defaultvalue = val || 0;
@@ -25,7 +25,7 @@
 
 	/**
 	 * reset to default value
-	 * @private
+	 * @ignore
 	 */
 	Stat_Item.prototype.reset = function() {
 		this.set(this.defaultvalue);
@@ -33,7 +33,7 @@
 
 	/**
 	 * update the value of an item
-	 * @private
+	 * @ignore
 	 */
 	Stat_Item.prototype.update = function(val) {
 		return this.set(this.value + val);
@@ -41,7 +41,7 @@
 	
 	/** 
       * Sets the value of an item 
-	 * @private
+	 * @ignore
 	 */
     Stat_Item.prototype.set = function(value) { 
 		this.value = value; 
@@ -55,9 +55,8 @@
 	 * manage game statistics<p>
 	 * me.gamestat can be used to store useful values during the game<p>
 	 * there is no constructor for me.gamestat
-	 * @final
+	 * @namespace me.gamestat
 	 * @memberOf me
-	 * @constructor Should not be called by the user.
 	 */
 	me.gamestat = (function() {
 
@@ -82,10 +81,11 @@
 
 		/**
 		 * add an item to the me.gamestat Object
-		 * @name me.gamestat#add
+		 * @name add
+		 * @memberOf me.gamestat
 		 * @public
 		 * @function
-		 * @param {String||Object} name name of the item or hash of items
+		 * @param {String|Object} name name of the item or hash of items
 		 * @param {int} [val="0"] default value
 		 * @example
 		 * // add a "stars" item
@@ -107,10 +107,11 @@
 
 		/**
 		 * update an item
-		 * @name me.gamestat#updateValue
+		 * @name updateValue
+		 * @memberOf me.gamestat
 		 * @public
 		 * @function
-		 * @param {String||Object} name name of the item or hash of items
+		 * @param {String|Object} name name of the item or hash of items
 		 * @param {int} val value to be added
 		 * @example
 		 * // update the "stars" item
@@ -130,10 +131,11 @@
 		
 		/** 
 		 * set value of an item 
-		 * @name me.gamestat#setValue 
+		 * @name setValue
+		 * @memberOf me.gamestat
 		 * @public 
 		 * @function 
-		 * @param {String||Object} name name of the item or hash of items
+		 * @param {String|Object} name name of the item or hash of items
 		 * @param {int} val value to be set 
 		 * @example 
 		 * // set the"stars" item 
@@ -154,7 +156,8 @@
 		
 		/**
 		 * return an item value
-		 * @name me.gamestat#getItemValue
+		 * @name getItemValue
+		 * @memberOf me.gamestat
 		 * @public
 		 * @function
 		 * @param {String} name name of the item
@@ -169,7 +172,8 @@
 
 		/**
 		 * reset the specified item to default value
-		 * @name me.gamestat#reset
+		 * @name reset
+		 * @memberOf me.gamestat
 		 * @public
 		 * @function
 		 * @param {String} [name="all"] name of the item
@@ -187,8 +191,9 @@
 
 		/**
 		 * reset all items to default value
-		 * @name me.gamestat#resetAll
-		 * @private
+		 * @name resetAll
+		 * @memberOf me.gamestat
+		 * @ignore
 		 * @function
 		 */
 		singleton.resetAll = function() {

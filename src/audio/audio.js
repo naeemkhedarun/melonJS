@@ -12,10 +12,8 @@
 
 	/**
 	 * There is no constructor function for me.audio.
-	 * 
-	 * @final
+	 * @namespace me.audio
 	 * @memberOf me
-	 * @constructor Should not be called by the user.
 	 */
 	me.audio = (function() {
 
@@ -58,8 +56,8 @@
 		var sync_loader = [];
 		 
 		/**
-		 * @private
 		 * return the first audio format extension supported by the browser
+		 * @ignore
 		 */
 		function getSupportedAudioFormat(requestedFormat) {
 			var result = "";
@@ -93,8 +91,8 @@
 		};
 
 		/**
-		 * @private
 		 * return the specified sound
+		 * @ignore
 		 */
 
 		function get(sound_id) {
@@ -115,8 +113,8 @@
 		};
 
 		/**
-		 * @private
 		 * event listener callback on load error
+		 * @ignore
 		 */
 
 		function soundLoadError(sound_id, onerror_cb) {
@@ -144,8 +142,8 @@
 		};
 
 		/**
-		 * @private
 		 * event listener callback when a sound is loaded
+		 * @ignore
 		 */
 
 		function soundLoaded(sound_id, sound_channel, onload_cb) {
@@ -170,19 +168,19 @@
 
 		/**
 		 * play the specified sound
-		 * 
-		 * @name me.audio#play
+		 * @name play
+		 * @memberOf me.audio
 		 * @public
 		 * @function
 		 * @param {String}
 		 *            sound_id audio clip id
 		 * @param {Boolean}
-		 *            [loop="false"] loop audio
+		 *            [loop=false] loop audio
 		 * @param {Function}
 		 *            [callback] callback function
 		 * @param {Number}
-		 * 			  [volume=1.0] Float specifying volume (0.0 - 1.0 values accepted).
-		 * @example 
+		 * 			  [volume=default] Float specifying volume (0.0 - 1.0 values accepted).
+		 * @example
 		 * // play the "cling" audio clip 
 		 * me.audio.play("cling"); 
 		 * // play & repeat the "engine" audio clip
@@ -217,8 +215,8 @@
 		};
 
 		/**
-		 * @private
 		 * play_audio with simulated callback
+		 * @ignore
 		 */
 
 		function _play_audio_disable(sound_id, loop, callback) {
@@ -261,7 +259,7 @@
 		};	
 		
 		/**
-		 * @private
+		 * @ignore
 		 */
 		obj.detectCapabilities = function () {
 			// init some audio variables
@@ -285,13 +283,13 @@
 		 * the melonJS loader will try to load audio files corresponding to the
 		 * browser supported audio format<br>
 		 * if no compatible audio codecs are found, audio will be disabled
-		 * 
-		 * @name me.audio#init
+		 * @name init
+		 * @memberOf me.audio
 		 * @public
 		 * @function
 		 * @param {String}
 		 *          audioFormat audio format provided ("mp3, ogg, m4a, wav")
-		 * @example 
+		 * @example
 		 * // initialize the "sound engine", giving "mp3" and "ogg" as desired audio format 
 		 * // i.e. on Safari, the loader will load all audio.mp3 files, 
 		 * // on Opera the loader will however load audio.ogg files
@@ -323,7 +321,8 @@
 		 * return true if audio is enable
 		 * 
 		 * @see me.audio#enable
-		 * @name me.audio#isAudioEnable
+		 * @name isAudioEnable
+		 * @memberOf me.audio
 		 * @public
 		 * @function
 		 * @return {boolean}
@@ -338,7 +337,8 @@
 		 * audio.disable()
 		 * 
 		 * @see me.audio#disable
-		 * @name me.audio#enable
+		 * @name enable
+		 * @memberOf me.audio
 		 * @public
 		 * @function
 		 */
@@ -354,7 +354,8 @@
 		/**
 		 * disable audio output
 		 * 
-		 * @name me.audio#disable
+		 * @name disable
+		 * @memberOf me.audio
 		 * @public
 		 * @function
 		 */
@@ -374,7 +375,7 @@
 		 * - src     : source path<br>
 		 * - channel : [Optional] number of channels to allocate<br>
 		 * - stream  : [Optional] boolean to enable streaming<br>
-		 * @private
+		 * @ignore
 		 */
 		obj.load = function(sound, onload_cb, onerror_cb) {
 			// do nothing if no compatible format is found
@@ -398,7 +399,7 @@
 				eventname = "canplay";
 			}
 
-			var soundclip = new Audio(sound.src + sound.name + "." + activeAudioExt + me.nocache);
+			var soundclip = new Audio(sound.src + sound.name + "." + activeAudioExt + me.loader.nocache);
 			soundclip.preload = 'auto';
 			soundclip.addEventListener(eventname, function(e) {
 				soundclip.removeEventListener(eventname, arguments.callee, false);
@@ -432,11 +433,12 @@
 		/**
 		 * stop the specified sound on all channels
 		 * 
-		 * @name me.audio#stop
+		 * @name stop
+		 * @memberOf me.audio
 		 * @public
 		 * @function
 		 * @param {String} sound_id audio clip id
-		 * @example 
+		 * @example
 		 * me.audio.stop("cling");
 		 */
 		obj.stop = function(sound_id) {
@@ -455,11 +457,12 @@
 		 * pause the specified sound on all channels<br>
 		 * this function does not reset the currentTime property
 		 * 
-		 * @name me.audio#pause
+		 * @name pause
+		 * @memberOf me.audio
 		 * @public
 		 * @function
 		 * @param {String} sound_id audio clip id
-		 * @example 
+		 * @example
 		 * me.audio.pause("cling");
 		 */
 		obj.pause = function(sound_id) {
@@ -477,12 +480,13 @@
 		 * this function automatically set the loop property to true<br>
 		 * and keep track of the current sound being played.
 		 * 
-		 * @name me.audio#playTrack
+		 * @name playTrack
+		 * @memberOf me.audio
 		 * @public
 		 * @function
 		 * @param {String} sound_id audio track id
 		 * @param {Number} [volume=default] Float specifying volume (0.0 - 1.0 values accepted).
-		 * @example 
+		 * @example
 		 * me.audio.playTrack("awesome_music");
 		 */
 		obj.playTrack = function(sound_id, volume) {
@@ -494,10 +498,11 @@
 		 * stop the current audio track
 		 * 
 		 * @see me.audio#playTrack
-		 * @name me.audio#stopTrack
+		 * @name stopTrack
+		 * @memberOf me.audio
 		 * @public
 		 * @function
-		 * @example 
+		 * @example
 		 * // play a awesome music 
 		 * me.audio.playTrack("awesome_music"); 
 		 * // stop the current music 
@@ -513,7 +518,8 @@
 
 		/**
 		 * set the default global volume
-		 * @name me.audio#setVolume
+		 * @name setVolume
+		 * @memberOf me.audio
 		 * @public
 		 * @function
 		 * @param {Number} volume Float specifying volume (0.0 - 1.0 values accepted).
@@ -526,7 +532,8 @@
 
 		/**
 		 * get the default global volume
-		 * @name me.audio#getVolume
+		 * @name getVolume
+		 * @memberOf me.audio
 		 * @public
 		 * @function
 		 * @returns {Number} current volume value in Float [0.0 - 1.0] .
@@ -537,7 +544,8 @@
 		
 		/**
 		 * mute the specified sound
-		 * @name me.audio#mute
+		 * @name mute
+		 * @memberOf me.audio
 		 * @public
 		 * @function
 		 * @param {String} sound_id audio clip id
@@ -553,7 +561,8 @@
 
 		/**
 		 * unmute the specified sound
-		 * @name me.audio#unmute
+		 * @name unmute
+		 * @memberOf me.audio
 		 * @public
 		 * @function
 		 * @param {String} sound_id audio clip id
@@ -564,7 +573,8 @@
 
 		/**
 		 * mute all audio 
-		 * @name me.audio#muteAll
+		 * @name muteAll
+		 * @memberOf me.audio
 		 * @public
 		 * @function
 		 */
@@ -577,7 +587,8 @@
 		
 		/**
 		 * unmute all audio 
-		 * @name me.audio#unmuteAll
+		 * @name unmuteAll
+		 * @memberOf me.audio
 		 * @public
 		 * @function
 		 */
@@ -590,7 +601,8 @@
 		
 		/**
 		 * returns the current track Id
-		 * @name me.audio#getCurrentTrack
+		 * @name getCurrentTrack
+		 * @memberOf me.audio
 		 * @public
 		 * @function
 		 * @return {String} audio track id
@@ -602,10 +614,11 @@
 		/**
 		 * pause the current audio track
 		 * 
-		 * @name me.audio#pauseTrack
+		 * @name pauseTrack
+		 * @memberOf me.audio
 		 * @public
 		 * @function
-		 * @example 
+		 * @example
 		 * me.audio.pauseTrack();
 		 */
 		obj.pauseTrack = function() {
@@ -617,11 +630,12 @@
 		/**
 		 * resume the previously paused audio track
 		 * 
-		 * @name me.audio#resumeTrack
+		 * @name resumeTrack
+		 * @memberOf me.audio
 		 * @public
 		 * @function
 		 * @param {String} sound_id audio track id
-		 * @example 
+		 * @example
 		 * // play an awesome music 
 		 * me.audio.playTrack("awesome_music");
 		 * // pause the audio track 
@@ -638,12 +652,13 @@
 		/**
 		 * unload specified audio track to free memory
 		 *
-		 * @name me.audio#unload
+		 * @name unload
+		 * @memberOf me.audio
 		 * @public
 		 * @function
 		 * @param {String} sound_id audio track id
 		 * @return {boolean} true if unloaded
-		 * @example 
+		 * @example
 		 * me.audio.unload("awesome_music");
 		 */
 		obj.unload = function(sound_id) {
@@ -666,10 +681,11 @@
 		/**
 		 * unload all audio to free memory
 		 *
-		 * @name me.audio#unloadAll
+		 * @name unloadAll
+		 * @memberOf me.audio
 		 * @public
 		 * @function
-		 * @example 
+		 * @example
 		 * me.audio.unloadAll();
 		 */
 		obj.unloadAll = function() {

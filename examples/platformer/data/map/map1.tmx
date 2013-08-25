@@ -4,10 +4,10 @@
   <property name="backgroundcolor" value="#aa55ff"/>
  </properties>
  <tileset firstgid="1" name="tileset" tilewidth="35" tileheight="35">
-  <image source="../gfx/tileset.png" width="512" height="512"/>
+  <image source="../img/tileset.png" width="512" height="512"/>
  </tileset>
  <tileset firstgid="197" name="metatiles35x35" tilewidth="35" tileheight="35">
-  <image source="../gfx/metatiles35x35.png" width="210" height="35"/>
+  <image source="../img/metatiles35x35.png" width="210" height="35"/>
   <tile id="0">
    <properties>
     <property name="type" value="solid"/>
@@ -40,7 +40,7 @@
   </tile>
  </tileset>
  <imagelayer name="gradient_background" width="50" height="17">
-  <image source="../gfx/background.png"/>
+  <image source="../img/background.png"/>
  </imagelayer>
  <layer name="back layer" width="50" height="17">
   <data encoding="base64">
@@ -111,7 +111,7 @@
  <objectgroup color="#ff0000" name="flies" width="50" height="17">
   <object name="FlyEntity" x="280" y="280" width="350" height="35">
    <properties>
-    <property name="animationspeed" value="12"/>
+    <property name="animationspeed" value="200"/>
     <property name="gravity" value="0"/>
     <property name="spriteheight" value="35"/>
     <property name="spritewidth" value="70"/>
@@ -120,7 +120,7 @@
   </object>
   <object name="FlyEntity" x="945" y="140" width="595" height="35">
    <properties>
-    <property name="animationspeed" value="12"/>
+    <property name="animationspeed" value="200"/>
     <property name="gravity" value="0"/>
     <property name="spriteheight" value="35"/>
     <property name="spritewidth" value="70"/>

@@ -8,8 +8,9 @@
 (function($) {
 
 	/**
-	 *  Base64 decoding
-	 *  @see <a href="http://www.webtoolkit.info/">http://www.webtoolkit.info/</A>
+	 * Base64 decoding
+	 * @see <a href="http://www.webtoolkit.info/">http://www.webtoolkit.info/</A>
+	 * @ignore 
 	 */
 	var Base64 = (function() {
 
@@ -63,15 +64,14 @@
 	})();
 
 	/**
-	 * a collection of utility Function
-	 * @final
+	 * a collection of utility functions<br>
+	 * there is no constructor function for me.utils
+	 * @namespace me.utils
 	 * @memberOf me
-	 * @private
-	 * @constructor Should not be called by the user.
 	 */
 
 	me.utils = (function() {
-		// hold public stuff in our singletong
+		// hold public stuff in our singleton
 		var api = {};
 		
 		
@@ -100,7 +100,10 @@
 
 		/**
 		 * Decode a base64 encoded string into a binary string
-		 *
+		 * @public
+		 * @function
+		 * @memberOf me.utils
+		 * @name decodeBase64
 		 * @param {String} input Base64 encoded data
 		 * @return {String} Binary string
 		 */
@@ -110,7 +113,10 @@
 
 		/**
 		 * Decode a base64 encoded string into a byte array
-		 *
+		 * @public
+		 * @function
+		 * @memberOf me.utils
+		 * @name decodeBase64AsArray
 		 * @param {String} input Base64 encoded data
 		 * @param {Int} [bytes] number of bytes per array entry
 		 * @return {Int[]} Array of bytes
@@ -138,9 +144,12 @@
 		
 		/**
 		 * decompress zlib/gzip data (NOT IMPLEMENTED)
-		 *
-		 * @param  {Int[]} Array of bytes
-		 * @param  {String} compressed data format ("gzip","zlib")
+		 * @public
+		 * @function
+		 * @memberOf me.utils
+		 * @name decompress
+		 * @param  {Int[]} data Array of bytes
+		 * @param  {String} format compressed data format ("gzip","zlib")
 		 * @return {Int[]} Array of bytes
 		 */
 		api.decompress = function(data, format) {
@@ -149,7 +158,10 @@
 
 		/**
 		 * Decode a CSV encoded array into a binary array
-		 *
+		 * @public
+		 * @function
+		 * @memberOf me.utils
+		 * @name decodeCSV
 		 * @param  {String} input CSV formatted data
 		 * @param  {Int} limit row split limit
 		 * @return {Int[]} Int Array
@@ -169,9 +181,12 @@
 		
 		/**
 		 * return the base name of the file without path info.<br>
-		 *
+		 * @public
+		 * @function
+		 * @memberOf me.utils
+		 * @name getBasename
 		 * @param  {String} path path containing the filename
-		 * @return {String} basename returns the base name without path information.
+		 * @return {String} the base name without path information.
 		 */
 		api.getBasename = function(path) {
 			return path.replace(removepath, '').replace(removeext, '');
@@ -179,7 +194,10 @@
 
 		/**
 		 * return the extension of the file in the given path <br>
-		 *
+		 * @public
+		 * @function
+		 * @memberOf me.utils
+		 * @name getFileExtension
 		 * @param  {String} path path containing the filename
 		 * @return {String} filename extension.
 		 */
@@ -187,16 +205,16 @@
 			return path.substring(path.lastIndexOf(".") + 1, path.length);
 		};
 		
-		/* ---
-		 
-			enable the nocache mechanism
-		  
-		  ---*/
-		api.setNocache = function(enable) {
-			me.nocache = enable ? "?" + parseInt(Math.random() * 10000000) : '';
-		};
-
-		// a Hex to RGB color function
+		/**
+		 * a Hex to RGB color function
+		 * @public
+		 * @function
+		 * @memberOf me.utils
+		 * @name HexTORGB
+		 * @param {String} h Hex color code in "#rgb" or "#RRGGBB" format
+		 * @param {Number} [a] Alpha to be appended to decoded color (0 to 255)
+		 * @return {String} CSS color string in rgb() or rgba() format
+		 */
 		api.HexToRGB = function(h, a) {
 			if (h.charAt(0) !== "#") {
 				// this is not a hexadecimal string
@@ -225,39 +243,69 @@
 			return (a ? "rgba(" : "rgb(") + rgbCache[h] + (a ? "," + a + ")" : ")");
 		};
 
-		// a Hex to RGB color function
+		/**
+		 * an RGB to Hex color function
+		 * @public
+		 * @function
+		 * @memberOf me.utils
+		 * @name RGBToHex
+		 * @param {Number} r Value for red component (0 to 255)
+		 * @param {Number} g Value for green component (0 to 255)
+		 * @param {Number} b Value for blue component (0 to 255)
+		 * @return {String} Hex color code in "RRGGBB" format
+		 */
 		api.RGBToHex = function(r, g, b) {
 			return r.toHex() + g.toHex() + b.toHex();
 		};
 		
-		// return the given canvas or image pixels
+		/**
+		 * Get image pixels
+		 * @public
+		 * @function
+		 * @memberOf me.utils
+		 * @name getPixels
+		 * @param {Image|Canvas} image Image to read
+		 * @return {ImageData} Canvas ImageData object
+		 */
 		api.getPixels = function(arg) {
 			if (arg instanceof HTMLImageElement) {
-				var c = me.video.createCanvasSurface(arg.width, arg.height);
-				c.drawImage(arg, 0, 0);
-				return c.getImageData(0, 0, arg.width, arg.height);
+				var _context = me.video.getContext2d(
+					me.video.createCanvas(arg.width, arg.height)
+				);
+				_context.drawImage(arg, 0, 0);
+				return _context.getImageData(0, 0, arg.width, arg.height);
 			} else { 
 				// canvas !
 				return arg.getContext('2d').getImageData(0, 0, arg.width, arg.height);
 			}
 		};
-   
-		// reset the GUID Base Name
-		// the idea here being to have a unique ID
-		// per level / object
+
+		/**
+		 * reset the GUID Base Name
+		 * the idea here being to have a unique ID
+		 * per level / object
+		 * @ignore
+		 */
 		api.resetGUID = function(base) {
 			// also ensure it's only 8bit ASCII characters
 			GUID_base  = base.toString().toUpperCase().toHex();
 			GUID_index = 0;
 		};
-      
-		// create and return a very simple GUID
-		// Game Unique ID
+
+		/**
+		 * create and return a very simple GUID
+		 * Game Unique ID
+		 * @ignore
+		 */
 		api.createGUID = function() {
 			return GUID_base + "-" + (GUID_index++);
 		};
-		
-		// apply friction to a force
+
+		/**
+		 * apply friction to a force
+		 * @ignore
+		 * @TODO Move this somewhere else
+		 */
 		api.applyFriction = function(v, f) {
 			return (v+f<0)?v+(f*me.timer.tick):(v-f>0)?v-(f*me.timer.tick):0;
 		};

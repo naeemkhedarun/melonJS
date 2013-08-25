@@ -17,6 +17,8 @@
 	 * @extends me.Renderable
 	 * @memberOf me
 	 * @constructor
+	 * @param {Boolean} [addAsObject] add the object in the game manager object pool<br>
+	 * @param {Boolean} [isPersistent] make the screen persistent over level changes; requires addAsObject=true<br>
 	 * @see me.state
 	 * @example
 	 * // create a custom loading screen
@@ -98,16 +100,28 @@
 	me.ScreenObject = me.Renderable.extend(
 	/** @scope me.ScreenObject.prototype */	
 	{
-		addAsObject	: false,
+		/** @ignore */
+		addAsObject : false,
+		/** @ignore */
+		visible : false,
+		/** @ignore */
+		frame : 0,
+
+		/**
+		 * Z-order for object sorting<br>
+		 * only used by the engine if the object has been initialized using addAsObject=true<br>
+		 * default value : 999
+		 * @private
+		 * @type Number
+		 * @name z
+		 * @memberOf me.ScreenObject
+		 */
 		z : 999,
 
 		/**
 		 * initialization function
-		 * @param {Boolean} [addAsObjet] add the object in the game manager object pool<br>
-		 * @param {Boolean} [isPersistent] isPersistent make the screen persistent overt level changes<br>
-		 * allowing to override the update & draw function to add specific treatment.
+		 * @ignore
 		 */
-
 		init : function(addAsObject, isPersistent) {
 			this.parent(new me.Vector2d(0, 0), 0, 0);
 			this.addAsObject = this.visible = (addAsObject === true) || false;
@@ -116,12 +130,16 @@
 
 		/**
 		 * Object reset function
-		 * @private
+		 * @ignore
 		 */
 		reset : function() {
 
 			// reset the game manager
 			me.game.reset();
+			
+			// reset the frame counter
+			this.frame = 0;
+			this.frameRate = Math.round(60/me.sys.fps);
 
 			// call the onReset Function
 			this.onResetEvent.apply(this, arguments);
@@ -144,7 +162,7 @@
 
 		/**
 		 * destroy function
-		 * @private
+		 * @ignore
 		 */
 		destroy : function() {
 			// notify the object
@@ -154,7 +172,10 @@
 		/**
 		 * update function<br>
 		 * optional empty function<br>
-		 * only used by the engine if the object has been initialized using addAsObject parameter set to true<br>
+		 * only used by the engine if the object has been initialized using addAsObject=true<br>
+		 * @name update
+		 * @memberOf me.ScreenObject
+		 * @function
 		 * @example
 		 * // define a Title Screen
 		 * var TitleScreen = me.ScreenObject.extend(
@@ -165,10 +186,9 @@
 		 *       //call the parent constructor giving true
 		 *       //as parameter, so that we use the update & draw functions
 		 *       this.parent(true);
-		 *       ...
-		 *       ...
+		 *       // ...
 		 *     },
-		 *     ...
+		 *     // ...
 		 * });
 		 */
 		update : function() {
@@ -177,26 +197,32 @@
 
 		/**
 		 * frame update function function
-		 * @private
+		 * @ignore
 		 */
 		onUpdateFrame : function() {
-			// update the frame counter
-			me.timer.update();
+			// handle frame skipping if required
+			if (!(++this.frame%this.frameRate)) {
+				// reset the frame counter
+				this.frame = 0;
+				
+				// update the timer
+				me.timer.update();
 
-			// update all games object
-			me.game.update();
+				// update all games object
+				me.game.update();
 
-			// draw the game objects
-			me.game.draw();
-
-			// blit our frame
-			me.video.blitSurface();
+				// draw the game objects
+				me.game.draw();
+			}
 		},
 
 		/**
 		 * draw function<br>
 		 * optional empty function<br>
-		 * only used by the engine if the object has been initialized using addAsObject parameter set to true<br>
+		 * only used by the engine if the object has been initialized using addAsObject=true<br>
+		 * @name draw
+		 * @memberOf me.ScreenObject
+		 * @function
 		 * @example
 		 * // define a Title Screen
 		 * var TitleScreen = me.ScreenObject.extend(
@@ -207,10 +233,9 @@
 		 *       //call the parent constructor giving true
 		 *       //as parameter, so that we use the update & draw functions
 		 *       this.parent(true);
-		 *       ...
-		 *       ...
+		 *       // ...
 		 *     },
-		 *     ...
+		 *     // ...
 		 * });
 		 */
 		draw : function() {
@@ -222,7 +247,11 @@
 		 * called by the state manager when reseting the object<br>
 		 * this is typically where you will load a level, etc...
 		 * to be extended
-		 *	@param {String[]} [arguments] optional arguments passed when switching state
+		 * @name onResetEvent
+		 * @memberOf me.ScreenObject
+		 * @function
+		 * @param {} [arguments...] optional arguments passed when switching state
+		 * @see me.state#change
 		 */
 		onResetEvent : function() {
 			// to be extended
@@ -231,6 +260,9 @@
 		/**
 		 * onDestroyEvent function<br>
 		 * called by the state manager before switching to another state<br>
+		 * @name onDestroyEvent
+		 * @memberOf me.ScreenObject
+		 * @function
 		 */
 		onDestroyEvent : function() {
 			// to be extended
@@ -238,43 +270,52 @@
 
 	});
 
+	// based on the requestAnimationFrame polyfill by Erik Möller
+	(function() {
+		var lastTime = 0;
+		var vendors = ['ms', 'moz', 'webkit', 'o'];
+		// get unprefixed rAF and cAF, if present
+		var requestAnimationFrame = window.requestAnimationFrame;
+		var cancelAnimationFrame = window.cancelAnimationFrame;
+		for(var x = 0; x < vendors.length; ++x) {
+			if ( requestAnimationFrame && cancelAnimationFrame ) {
+				break;
+			}
+			requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
+			cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame'] ||
+								   window[vendors[x]+'CancelRequestAnimationFrame'];
+		}
+
+		if (!requestAnimationFrame || !cancelAnimationFrame) {
+			requestAnimationFrame = function(callback, element) {
+				var currTime = Date.now();
+				var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+				var id = window.setTimeout(function() { 
+					callback(currTime + timeToCall); 
+				}, timeToCall);
+				lastTime = currTime + timeToCall;
+				return id;
+			};
+
+			cancelAnimationFrame = function(id) {
+				window.clearTimeout(id);
+			};
+		}
+		
+		 // put back in global namespace
+		window.requestAnimationFrame = requestAnimationFrame;
+		window.cancelAnimationFrame = cancelAnimationFrame;
+	}());
 
 	
 	/**
 	 * a State Manager (state machine)<p>
 	 * There is no constructor function for me.state.
-	 * @final
+	 * @namespace me.state
 	 * @memberOf me
-	 * @constructor Should not be called by the user.
 	 */
 
 	me.state = (function() {
-		
-		// list of vendors prefix (note : last modernizr version has
-		// a getPrefix function that makes this cleaner and more generic
-		var vendors = ['ms', 'moz', 'webkit', 'o'];
-		
-		// polyfill for RequestAnimationFrame (based on Erik Möller polyfill)
-		for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
-			window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
-			window.cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame'] || window[vendors[x]+'CancelRequestAnimationFrame'];
-		};
-		
-		if (!window.requestAnimationFrame) {
-			window.requestAnimationFrame = function(callback, element) {
-				// TODO : allow to run at a lower rate than 60fps with requestAnimationFrame by skipping frame
-				// TODO : integrate setInterval directly here as a fallback
-				// (for next version, I plan to review the whole main loop mechanism, so I don't do it now) 
-				// in melonJS if this returns -1 clearInterval is used
-				return -1;
-			};
-        };
-		
-		if (!window.cancelAnimationFrame) {
-			window.cancelAnimationFrame = function() {
-				return -1;
-			};
-		};
 		
 		// hold public stuff in our singleton
 		var obj = {};
@@ -285,10 +326,12 @@
 
 		// current state
 		var _state = -1;
-		// SetInterval Id
-		var _intervalId = -1;
+
 		// requestAnimeFrame Id
 		var _animFrameId = -1;
+
+		// whether the game state is "paused"
+		var _isPaused = false;
 
 		// list of screenObject
 		var _screenObject = {};
@@ -300,7 +343,7 @@
 		};
 
 		// callback when state switch is done
-		/** @private */
+		/** @ignore */
 		var _onSwitchComplete = null;
 
 		// just to keep track of possible extra arguments
@@ -313,30 +356,37 @@
 		 * @ignore
 		 */
 		function _startRunLoop() {
-			// ensure nothing is running first
-			if ((_intervalId == -1) && (_animFrameId == -1)) {
-
+			// ensure nothing is running first and in valid state
+			if ((_animFrameId === -1) && (_state !== -1)) {
 				// reset the timer
 				me.timer.reset();
 
 				// start the main loop
-				if (me.sys.useNativeAnimFrame) {
-					// attempt to setup the game loop using requestAnimationFrame
-					_animFrameId = window.requestAnimationFrame(_renderFrame);
-
-					if (_animFrameId != -1) {
-						return;
-					}
-					// else feature not supported !
-
-					// disable use of requestAnimationFrame (since unsupported)
-					me.sys.useNativeAnimFrame = false;
-					//console.log("using setInterval as fallback ("+_animFrameId+")");
-				}
-
-				// setup the game loop using setInterval
-				_intervalId = setInterval(_activeUpdateFrame, ~~(1000 / me.sys.fps));
+				_animFrameId = window.requestAnimationFrame(_renderFrame);
 			}
+		};
+
+		/**
+		 * Resume the game loop after a pause.
+		 * @ignore
+		 */
+		function _resumeRunLoop() {
+			// ensure game is actually paused and in valid state
+			if (_isPaused && (_state !== -1)) {
+				// reset the timer
+				me.timer.reset();
+
+				_isPaused = false;
+			}
+		};
+
+		/**
+		 * Pause the loop for most screen objects.
+		 * @ignore
+		 */
+		function _pauseRunLoop() {
+			// Set the paused boolean to stop updates on (most) entities
+			_isPaused = true;
 		};
 
 		/**
@@ -345,11 +395,9 @@
 		 */
 		function _renderFrame() {
 			_activeUpdateFrame();
-			// we already checked it was supported earlier
-			// so no need to do it again here
 			if (_animFrameId != -1) {
-				_animFrameId = window.requestAnimationFrame(_renderFrame);
-			}
+		           _animFrameId = window.requestAnimationFrame(_renderFrame);
+		    }
 		};
 
 		/**
@@ -357,17 +405,9 @@
 		 * @ignore
 		 */
 		function _stopRunLoop() {
-			// cancel any previous setInterval
-			if (_intervalId != -1) {
-				clearInterval(_intervalId);
-				_intervalId = -1;
-			}
 			// cancel any previous animationRequestFrame
-			if (_animFrameId != -1) {
-				window.cancelAnimationFrame(_animFrameId);
-				_animFrameId = -1;
-			}
-
+			window.cancelAnimationFrame(_animFrameId);
+			_animFrameId = -1;
 		};
 
 		/**
@@ -421,62 +461,72 @@
 		/**
 		 * default state value for Loading Screen
 		 * @constant
-		 * @name me.state#LOADING
+		 * @name LOADING
+		 * @memberOf me.state
 		 */
 		obj.LOADING = 0;
 		/**
 		 * default state value for Menu Screen
 		 * @constant
-		 * @name me.state#MENU
+		 * @name MENU
+		 * @memberOf me.state
 		 */
 		obj.MENU = 1;
 		/**
 		 * default state value for "Ready" Screen
 		 * @constant
-		 * @name me.state#READY
+		 * @name READY
+		 * @memberOf me.state
 		 */
 		obj.READY = 2;
 		/**
 		 * default state value for Play Screen
 		 * @constant
-		 * @name me.state#PLAY
+		 * @name PLAY
+		 * @memberOf me.state
 		 */
 		obj.PLAY = 3;
 		/**
 		 * default state value for Game Over Screen
 		 * @constant
-		 * @name me.state#GAMEOVER
+		 * @name GAMEOVER
+		 * @memberOf me.state
 		 */
 		obj.GAMEOVER = 4;
 		/**
 		 * default state value for Game End Screen
 		 * @constant
-		 * @name me.state#GAME_END
+		 * @name GAME_END
+		 * @memberOf me.state
 		 */
 		obj.GAME_END = 5;
 		/**
 		 * default state value for High Score Screen
 		 * @constant
-		 * @name me.state#SCORE
+		 * @name SCORE
+		 * @memberOf me.state
 		 */
 		obj.SCORE = 6;
 		/**
 		 * default state value for Credits Screen
 		 * @constant
-		 * @name me.state#CREDITS
+		 * @name CREDITS
+		 * @memberOf me.state
 		 */
 		obj.CREDITS = 7;
 		/**
 		 * default state value for Settings Screen
 		 * @constant
-		 * @name me.state#SETTINGS
+		 * @name SETTINGS
+		 * @memberOf me.state
 		 */
 		obj.SETTINGS = 8;
 		
 		/**
 		 * default state value for user defined constants<br>
 		 * @constant
-		 * @name me.state#USER
+		 * @name USER
+		 * @memberOf me.state
 		 * @example
 		 * var STATE_INFO = me.state.USER + 0;
 		 * var STATE_WARN = me.state.USER + 1;
@@ -487,67 +537,111 @@
 
 		/**
 		 * onPause callback
-		 * @type function
-		 * @name me.state#onPause
+		 * @callback
+		 * @name onPause
+		 * @memberOf me.state
 		 */
 		obj.onPause = null;
 
 		/**
 		 * onResume callback
-		 * @type function
-		 * @name me.state#onResume
+		 * @callback
+		 * @name onResume
+		 * @memberOf me.state
 		 */
 		obj.onResume = null;
+
+		/**
+		 * onStop callback
+		 * @callback
+		 * @name onStop
+		 * @memberOf me.state
+		 */
+		obj.onStop = null;
+
+		/**
+		 * onRestart callback
+		 * @callback
+		 * @name onRestart
+		 * @memberOf me.state
+		 */
+		obj.onRestart = null;
 
 		/**
 		 * @ignore
 		 */
 		obj.init = function() {
 			// set the embedded loading screen
-			obj.set(obj.LOADING, me.loadingScreen);
+			obj.set(obj.LOADING, new me.DefaultLoadingScreen());
 
-			// set pause action on losing focus
+			// set pause/stop action on losing focus
 			$.addEventListener("blur", function() {
 				// only in case we are not loading stuff
-				if (me.sys.pauseOnBlur && (_state != obj.LOADING)) {
-					obj.pause(true);
+				if (_state != obj.LOADING) {
+					if (me.sys.stopOnBlur) {
+						obj.stop(true);	
+
+						// callback?
+						if (obj.onStop)
+							obj.onStop();
+
+						// publish the pause notification
+						me.event.publish(me.event.STATE_STOP);
+					}
+					if (me.sys.pauseOnBlur) {
+							obj.pause(true);	
+						// callback?
+						if (obj.onPause)
+							obj.onPause();
+
+						// publish the pause notification
+						me.event.publish(me.event.STATE_PAUSE);
+					}
 				}
-				// callback?
-				if (obj.onPause)
-					obj.onPause();
-
-				// publish the pause notification
-				me.event.publish(me.event.STATE_PAUSE);
-
 			}, false);
-			// set play action on gaining focus
+			// set restart/resume action on gaining focus
 			$.addEventListener("focus", function() {
 				// only in case we are not loading stuff
-				if (me.sys.pauseOnBlur && (_state != obj.LOADING)) {
-					obj.resume(true);
+				if (_state != obj.LOADING) {
+					// note: separate boolean so we can stay paused if user prefers
+					if (me.sys.resumeOnFocus) {
+						obj.resume(true);
 
-					// force repaint
-					me.game.repaint();
+						// callback?
+						if (obj.onResume)
+							obj.onResume();
+
+						// publish the resume notification
+						me.event.publish(me.event.STATE_RESUME);
+					}
+					if (me.sys.stopOnBlur) {
+						obj.restart(true);
+
+						// force repaint
+						me.game.repaint();
+
+						// callback?
+						if (obj.onRestart)
+							obj.onRestart();
+
+						// publish the resume notification
+						me.event.publish(me.event.STATE_RESTART);
+					}
 				}
-				// callback?
-				if (obj.onResume)
-					obj.onResume();
-
-				// publish the resume notification
-				me.event.publish(me.event.STATE_RESUME);
 
 			}, false);
 
 		};
 
 		/**
-		 * pause the current screen object
-		 * @name me.state#pause
+		 * Stop the current screen object.
+		 * @name stop
+		 * @memberOf me.state
 		 * @public
 		 * @function
-		 * @param {Boolean} pauseTrack pause current track on screen pause
+		 * @param {Boolean} pauseTrack pause current track on screen stop.
 		 */
-		obj.pause = function(music) {
+		obj.stop = function(music) {
 			// stop the main loop
 			_stopRunLoop();
 			// current music stop
@@ -557,14 +651,32 @@
 		};
 
 		/**
-		 * resume the resume screen object
-		 * @name me.state#resume
+		 * pause the current screen object
+		 * @name pause
+		 * @memberOf me.state
+		 * @public
+		 * @function
+		 * @param {Boolean} pauseTrack pause current track on screen pause
+		 */
+		obj.pause = function(music) {
+			// stop the main loop
+			_pauseRunLoop();
+			// current music stop
+			if (music)
+				me.audio.pauseTrack();
+
+		};
+
+		/**
+		 * Restart the screen object from a full stop.
+		 * @name restart
+		 * @memberOf me.state
 		 * @public
 		 * @function
 		 * @param {Boolean} resumeTrack resume current track on screen resume
 		 */
-		obj.resume = function(music) {
-			// start the main loop
+		obj.restart = function(music) {
+			// restart the main loop
 			_startRunLoop();
 			// current music stop
 			if (music)
@@ -572,23 +684,53 @@
 		};
 
 		/**
+		 * resume the screen object
+		 * @name resume
+		 * @memberOf me.state
+		 * @public
+		 * @function
+		 * @param {Boolean} resumeTrack resume current track on screen resume
+		 */
+		obj.resume = function(music) {
+			// resume the main loop
+			_resumeRunLoop();
+			// current music stop
+			if (music)
+				me.audio.resumeTrack();
+		};
+
+		/**
 		 * return the running state of the state manager
-		 * @name me.state#isRunning
+		 * @name isRunning
+		 * @memberOf me.state
 		 * @public
 		 * @function
 		 * @param {Boolean} true if a "process is running"
 		 */
 		obj.isRunning = function() {
-			return ((_intervalId != -1) || (_animFrameId != -1))
+			return (_animFrameId !== -1)
+		};
+
+		/**
+		 * Return the pause state of the state manager
+		 * @name isPaused
+		 * @memberOf me.state
+		 * @public
+		 * @function
+		 * @param {Boolean} true if the game is paused
+		 */
+		obj.isPaused = function() {
+			return _isPaused;
 		};
 
 		/**
 		 * associate the specified state with a screen object
-		 * @name me.state#set
+		 * @name set
+		 * @memberOf me.state
 		 * @public
 		 * @function
 		 * @param {Int} state @see me.state#Constant
-		 * @param {me.ScreenObject} so
+		 * @param {me.ScreenObject}
 		 */
 		obj.set = function(state, so) {
 			_screenObject[state] = {};
@@ -599,10 +741,11 @@
 		/**
 		 * return a reference to the current screen object<br>
 		 * useful to call a object specific method
-		 * @name me.state#current
+		 * @name current
+		 * @memberOf me.state
 		 * @public
 		 * @function
-		 * @return {me.ScreenObject} so
+		 * @return {me.ScreenObject}
 		 */
 		obj.current = function() {
 			return _screenObject[_state].screen;
@@ -610,12 +753,13 @@
 
 		/**
 		 * specify a global transition effect
-		 * @name me.state#transition
+		 * @name transition
+		 * @memberOf me.state
 		 * @public
 		 * @function
 		 * @param {String} effect (only "fade" is supported for now)
-		 * @param {String} color in RGB format (e.g. "#000000")
-		 * @param {Int} [duration="1000"] in ms
+		 * @param {String} color a CSS color value
+		 * @param {Int} [duration=1000] expressed in milliseconds
 		 */
 		obj.transition = function(effect, color, duration) {
 			if (effect == "fade") {
@@ -626,29 +770,34 @@
 
 		/**
 		 * enable/disable transition for a specific state (by default enabled for all)
-		 * @name me.state#setTransition
+		 * @name setTransition
+		 * @memberOf me.state
 		 * @public
 		 * @function
 		 */
-
 		obj.setTransition = function(state, enable) {
 			_screenObject[state].transition = enable;
 		};
 
 		/**
 		 * change the game/app state
-		 * @name me.state#change
+		 * @name change
+		 * @memberOf me.state
 		 * @public
 		 * @function
 		 * @param {Int} state @see me.state#Constant
-		 * @param {Arguments} [args] extra arguments to be passed to the reset functions
+		 * @param {} [arguments...] extra arguments to be passed to the reset functions
 		 * @example
 		 * // The onResetEvent method on the play screen will receive two args:
 		 * // "level_1" and the number 3
 		 * me.state.change(me.state.PLAY, "level_1", 3);
 		 */
-
 		obj.change = function(state) {
+			// Protect against undefined ScreenObject
+			if (typeof(_screenObject[state]) === "undefined") {
+				throw "melonJS : Undefined ScreenObject for state '" + state + "'";
+			}
+
 			_extraArgs = null;
 			if (arguments.length > 1) {
 				// store extra arguments if any
@@ -656,7 +805,7 @@
 			}
 			// if fading effect
 			if (_fade.duration && _screenObject[state].transition) {
-				/** @private */
+				/** @ignore */
 				_onSwitchComplete = function() {
 					me.game.viewport.fadeOut(_fade.color, _fade.duration);
 				};
@@ -677,7 +826,8 @@
 
 		/**
 		 * return true if the specified state is the current one
-		 * @name me.state#isCurrent
+		 * @name isCurrent
+		 * @memberOf me.state
 		 * @public
 		 * @function
 		 * @param {Int} state @see me.state#Constant

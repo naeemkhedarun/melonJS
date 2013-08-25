@@ -12,11 +12,11 @@
 
 	/**
 	 * a TMX Map Reader
-	 * Tile QT 0.7.x format
+	 * Tiled QT 0.7.x format
 	 * @class
 	 * @memberOf me
 	 * @constructor
-	 * @private
+	 * @ignore
 	 */
 	me.TMXMapReader = Object.extend({
 		
@@ -70,7 +70,7 @@
 		 * set a compatible renderer object
 		 * for the specified map
 		 * TODO : put this somewhere else
-		 * @private
+		 * @ignore
 		 */
 		getNewDefaultRenderer: function (obj) {
 			switch (obj.orientation) {
@@ -92,7 +92,7 @@
 		
 		/**
 		 * Set tiled layer Data
-		 * @private
+		 * @ignore
 		 */
 		setLayerData : function(layer, data, encoding, compression) {
 			// initialize the layer data array
@@ -220,11 +220,11 @@
 	
 	/**
 	 * a XML Map Reader
-	 * Tile QT 0.7.x format
+	 * Tiled QT 0.7.x format
 	 * @class
 	 * @memberOf me
 	 * @constructor
-	 * @private
+	 * @ignore
 	 */
 	var XMLMapReader = me.TMXMapReader.extend({
 		
@@ -238,7 +238,7 @@
 		
 		/**
 		 * initialize a map using XML data
-		 * @private
+		 * @ignore
 		 */
 		readXMLMap : function(map, data) {
 			if (!data) {
@@ -397,6 +397,11 @@
 			
 			// check if we have any properties 
 			me.TMXUtils.applyTMXPropertiesFromXML(imageLayer, data);
+			
+			// make sure ratio is a vector (backward compatibility)
+			if (typeof(imageLayer.ratio) === "number") {
+				imageLayer.ratio = new me.Vector2d(parseFloat(imageLayer.ratio), parseFloat(imageLayer.ratio));
+			}
 
 			// add the new layer
 			return imageLayer;
@@ -413,7 +418,7 @@
    
 		readObjectGroup: function(map, data, z) {
 			var name = this.TMXParser.getStringAttribute(data, me.TMX_TAG_NAME);
-			var group = new me.TMXOBjectGroup();
+			var group = new me.TMXObjectGroup();
 			group.initFromXML(name, data, map.tilesets, z);
 			return group;
 		}
@@ -422,11 +427,11 @@
 	
 	/**
 	 * a JSON Map Reader
-	 * Tile QT 0.7.x format
+	 * Tiled QT 0.7.x format
 	 * @class
 	 * @memberOf me
 	 * @constructor
-	 * @private
+	 * @ignore
 	 */
 	var JSONMapReader = me.TMXMapReader.extend({
 		
@@ -547,9 +552,10 @@
 			// check if we have any additional properties 
 			me.TMXUtils.applyTMXPropertiesFromJSON(imageLayer, data);
 			
-			// make sure ratio is a float
-			imageLayer.ratio = parseFloat(imageLayer.ratio);
-			
+			// make sure ratio is a vector (backward compatibility)
+			if (typeof(imageLayer.ratio) === "number") {
+				imageLayer.ratio = new me.Vector2d(parseFloat(imageLayer.ratio), parseFloat(imageLayer.ratio));
+			}
 			
 			return imageLayer;
 		},
@@ -561,7 +567,7 @@
 		},
 		
 		readObjectGroup: function(map, data, z) {
-			var group = new me.TMXOBjectGroup();
+			var group = new me.TMXObjectGroup();
 			group.initFromJSON(data[me.TMX_TAG_NAME], data, map.tilesets, z);
 			return group;
 		}

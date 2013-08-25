@@ -12,9 +12,9 @@
 	
 	/**
 	 * an Orthogonal Map Renderder
-	 * Tile QT 0.7.x format
+	 * Tiled QT 0.7.x format
 	 * @memberOf me
-	 * @private
+	 * @ignore
 	 * @constructor
 	 */
 	me.TMXOrthogonalRenderer = Object.extend({
@@ -28,7 +28,7 @@
 		
 		/** 
 		 * return true if the renderer can render the specified layer
-		 * @private
+		 * @ignore
 		 */
 		canRender : function(layer) {
 			return ((layer.orientation === 'orthogonal') &&
@@ -40,7 +40,7 @@
 		
 		/**
 		 * return the tile position corresponding to the specified pixel
-		 * @private
+		 * @ignore
 		 */
 		pixelToTileCoords : function(x, y) {
 			return new me.Vector2d(x / this.tilewidth,
@@ -49,16 +49,30 @@
 		
 		/**
 		 * return the pixel position corresponding of the specified tile
-		 * @private
+		 * @ignore
 		 */
 		tileToPixelCoords : function(x, y) {
 			return new me.Vector2d(x * this.tilewidth,
 								   y * this.tileheight);		
 		},
+
+		/**
+		 * fix the position of Objects to match
+		 * the way Tiled places them
+		 * @ignore
+		 */
+		adjustPosition: function(obj) {
+			// only adjust position if obj.gid is defined
+			if (typeof(obj.gid) === 'number') {
+				 // Tiled objects origin point is "bottom-left" in Tiled, 
+				 // "top-left" in melonJS)
+				obj.y -= obj.height;
+			}
+		},
 		
 		/**
 		 * draw the tile map
-		 * @private
+		 * @ignore
 		 */
 		drawTile : function(context, x, y, tmxTile, tileset) {
 			// draw the tile
@@ -70,15 +84,15 @@
 		
 		/**
 		 * draw the tile map
-		 * @private
+		 * @ignore
 		 */
-		drawTileLayer : function(context, layer, viewport, rect) {
+		drawTileLayer : function(context, layer, rect) {
 			// get top-left and bottom-right tile position
-			var start = this.pixelToTileCoords(viewport.x + rect.pos.x, 
-											   viewport.y + rect.pos.y).floorSelf();
+			var start = this.pixelToTileCoords(rect.pos.x, 
+											   rect.pos.y).floorSelf();
 				
-			var end = this.pixelToTileCoords(viewport.x + rect.pos.x + rect.width + this.tilewidth, 
-											 viewport.y + rect.pos.y + rect.height + this.tileheight).ceilSelf();
+			var end = this.pixelToTileCoords(rect.pos.x + rect.width + this.tilewidth, 
+											 rect.pos.y + rect.height + this.tileheight).ceilSelf();
 			
 			//ensure we are in the valid tile range
 			end.x = end.x > this.cols ? this.cols : end.x;
@@ -106,9 +120,9 @@
 	
 	/**
 	 * an Isometric Map Renderder
-	 * Tile QT 0.7.x format
+	 * Tiled QT 0.7.x format
 	 * @memberOf me
-	 * @private
+	 * @ignore
 	 * @constructor
 	 */
 	me.TMXIsometricRenderer = Object.extend({
@@ -126,7 +140,7 @@
 		
 		/** 
 		 * return true if the renderer can render the specified layer
-		 * @private
+		 * @ignore
 		 */
 		canRender : function(layer) {
 			return ((layer.orientation === 'isometric') &&
@@ -138,7 +152,7 @@
 		
 		/**
 		 * return the tile position corresponding to the specified pixel
-		 * @private
+		 * @ignore
 		 */
 		pixelToTileCoords : function(x, y) {
 			x -=  this.originX;
@@ -151,17 +165,34 @@
 		
 		/**
 		 * return the pixel position corresponding of the specified tile
-		 * @private
+		 * @ignore
 		 */
 		tileToPixelCoords : function(x, y) {
 			return new me.Vector2d((x - y) * this.hTilewidth + this.originX,
 								   (x + y) * this.hTileheight);
 		},
 
+		/**
+		 * fix the position of Objects to match
+		 * the way Tiled places them
+		 * @ignore
+		 */
+		adjustPosition: function(obj){
+			var tilex = obj.x/this.hTilewidth;
+			var tiley = obj.y/this.tileheight;
+			var isoPos = this.tileToPixelCoords(tilex, tiley);
+			isoPos.x -= obj.width/2;
+			isoPos.y -= obj.height;
+			
+			obj.x = isoPos.x;
+			obj.y = isoPos.y;
+
+			//return isoPos;
+		},
 		
 		/**
 		 * draw the tile map
-		 * @private
+		 * @ignore
 		 */
 		drawTile : function(context, x, y, tmxTile, tileset) {
 			// draw the tile
@@ -173,19 +204,19 @@
 		
 		/**
 		 * draw the tile map
-		 * @private
+		 * @ignore
 		 */
-		drawTileLayer : function(context, layer, viewport, rect) {
+		drawTileLayer : function(context, layer, rect) {
 		
 			// cache a couple of useful references
 			var tileset = layer.tileset;
 			var offset  = tileset.tileoffset;
 
 			// get top-left and bottom-right tile position
-			var rowItr = this.pixelToTileCoords(viewport.x + rect.pos.x - tileset.tilewidth, 
-											    viewport.y + rect.pos.y - tileset.tileheight).floorSelf();
-			var TileEnd = this.pixelToTileCoords(viewport.x + rect.pos.x + rect.width + tileset.tilewidth, 
-												 viewport.y + rect.pos.y + rect.height + tileset.tileheight).ceilSelf();
+			var rowItr = this.pixelToTileCoords(rect.pos.x - tileset.tilewidth, 
+											    rect.pos.y - tileset.tileheight).floorSelf();
+			var TileEnd = this.pixelToTileCoords(rect.pos.x + rect.width + tileset.tilewidth, 
+												 rect.pos.y + rect.height + tileset.tileheight).ceilSelf();
 			
 			var rectEnd = this.tileToPixelCoords(TileEnd.x, TileEnd.y);
 			
