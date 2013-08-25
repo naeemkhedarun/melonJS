@@ -69,7 +69,7 @@ game.PlayerEntity = me.ObjectEntity.extend({
 			this.jumping = true;
 
 			// reset the dblJump flag if off the ground
-			this.mutipleJump = (this.vel.y === 0)?1:this.mutipleJump;
+			this.mutipleJump = (~~this.vel.y === 0)?1:this.mutipleJump;
 			
 			if (this.mutipleJump<=2) {
 				// easy 'math' for double jump
@@ -94,7 +94,7 @@ game.PlayerEntity = me.ObjectEntity.extend({
 		}
 		
 		// check if we moved (a "stand" animation would definitely be cleaner)
-		if (this.vel.x!=0 || this.vel.y!=0 || (this.renderable&&this.renderable.isFlickering())) {
+		if (~~this.vel.x!=0 || ~~this.vel.y!=0 || (this.renderable&&this.renderable.isFlickering())) {
 			this.parent();
 			return true;
 		}
