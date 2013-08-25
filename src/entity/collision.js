@@ -25,7 +25,8 @@ me.collision = (function() {
          * Default object type constant.<br>
          * See type property of the returned collision vector.
          * @constant
-         * @name me.collision.types#ENEMY_OBJECT
+         * @name ENEMY_OBJECT
+         * @memberOf me.collision.types
          */
         ENEMY_OBJECT : 1,
 
@@ -33,7 +34,8 @@ me.collision = (function() {
          * Default object type constant.<br>
          * See type property of the returned collision vector.
          * @constant
-         * @name me.collision.types#COLLECTABLE_OBJECT
+         * @name COLLECTABLE_OBJECT
+         * @memberOf me.collision.types
          */
         COLLECTABLE_OBJECT : 2,
 
@@ -41,7 +43,8 @@ me.collision = (function() {
          * Default object type constant.<br>
          * See type property of the returned collision vector.
          * @constant
-         * @name me.collision.types#ACTION_OBJECT
+         * @name ACTION_OBJECT
+         * @memberOf me.collision.types
          */
         ACTION_OBJECT : 3 // door, etc...
     };
@@ -54,7 +57,8 @@ me.collision = (function() {
      * Width of a cell in the collision spacial grid<br>
      * @public
      * @type {Number}
-     * @name me.collision#gridwidth
+     * @name gridwidth
+     * @memberOf me.collision
      */
     (Object.defineProperty(api, "gridwidth", {
         get : function() {
@@ -72,7 +76,8 @@ me.collision = (function() {
      * Height of a cell in the collision spacial grid<br>
      * @public
      * @type {Number}
-     * @name me.collision#gridheight
+     * @name gridheight
+     * @memberOf me.collision
      */
     (Object.defineProperty(api, "gridheight", {
         get : function() {
@@ -90,7 +95,8 @@ me.collision = (function() {
      * Width of collision spacial grid<br>
      * @public
      * @type {Number}
-     * @name me.collision#cols
+     * @name cols
+     * @memberOf me.collision
      */
     (Object.defineProperty(api, "cols", {
         get : function() {
@@ -103,7 +109,8 @@ me.collision = (function() {
      * Height of collision spacial grid<br>
      * @public
      * @type {Number}
-     * @name me.collision#rows
+     * @name rows
+     * @memberOf me.collision
      */
     (Object.defineProperty(api, "rows", {
         get : function() {
@@ -114,7 +121,8 @@ me.collision = (function() {
 
     /**
      * Reset the spacial grid.<br>
-     * @name me.collision#reset
+     * @name reset
+     * @memberOf me.collision
      * @protected
      * @function
      */
@@ -158,7 +166,8 @@ me.collision = (function() {
 
     /**
      * Populate the spacial grid after a level has loaded.<br>
-     * @name me.collision#onLevelLoaded
+     * @name onLevelLoaded
+     * @memberOf me.collision
      * @private
      * @function
      */
@@ -199,7 +208,8 @@ me.collision = (function() {
 
     /**
      * Add an object to the spacial grid.<br>
-     * @name me.collision#add
+     * @name add
+     * @memberOf me.collision
      * @public
      * @function
      * @param {me.ObjectEntity} obj Object to be added
@@ -225,7 +235,8 @@ me.collision = (function() {
 
     /**
      * Remove an object from the spacial grid.<br>
-     * @name me.collision#remove
+     * @name remove
+     * @memberOf me.collision
      * @public
      * @function
      * @param {me.ObjectEntity} obj Object to be removed
@@ -251,7 +262,8 @@ me.collision = (function() {
 
     /**
      * Add an object to the spacial grid in the specified positions.<br>
-     * @name me.collision#addTo
+     * @name addTo
+     * @memberOf me.collision
      * @rivate
      * @function
      * @param {me.ObjectEntity} obj Object to be added
@@ -275,7 +287,8 @@ me.collision = (function() {
 
     /**
      * Remove an object from the spacial grid in the specified positions.<br>
-     * @name me.collision#removeFrom
+     * @name removeFrom
+     * @memberOf me.collision
      * @rivate
      * @function
      * @param {me.ObjectEntity} obj Object to be removed
@@ -298,7 +311,8 @@ me.collision = (function() {
 
     /**
      * Update an object's position within the spacial grid.<br>
-     * @name me.collision#updateMovement
+     * @name updateMovement
+     * @memberOf me.collision
      * @public
      * @function
      * @param {me.ObjectEntity} obj Object to be updated
@@ -350,7 +364,8 @@ me.collision = (function() {
 
     /**
      * Perform collision detection for a given object.<br>
-     * @name me.collision#check
+     * @name check
+     * @memberOf me.collision
      * @private
      * @function
      * @param {me.ObjectEntity} objA Object to be tested for collisions
@@ -402,7 +417,8 @@ me.collision = (function() {
 
     /**
      * Returns the number of objects considered for collision per frame<br>
-     * @name me.collision#getObjectCount
+     * @name getObjectCount
+     * @memberOf me.collision
      * @protected
      * @function
      * @return {Number} total number of objects in the collision spacial grid
@@ -413,7 +429,8 @@ me.collision = (function() {
 
     /**
      * Calculate the collision response colliding objects<br>
-     * @name me.collision#calcResponse
+     * @name calcResponse
+     * @memberOf me.collision
      * @private
      * @function
      * @param {me.Rect} objA First object
@@ -489,7 +506,8 @@ me.collision = (function() {
 
     /**
      * Draw collision detection spacial grid (for debugging).<br>
-     * @name me.collision#draw
+     * @name draw
+     * @memberOf me.collision
      * @protected
      * @function
      * @param {Context2d} context Destination canvas context
