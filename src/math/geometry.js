@@ -852,6 +852,20 @@
 		},
 
 		/**
+		 * check if this rectangle contains the specified point
+		 * @name containsPoint
+		 * @memberOf me.Rect
+		 * @function
+		 * @param  {Number} x x coordinate
+		 * @param  {Number} y y coordinate
+		 * @return {boolean} true if contains
+		 */
+		containsPoint: function(x, y) {
+			return  (x >= this.left && x <= this.right &&
+					(y >= this.top) && y <= this.bottom)
+		},
+
+		/**
 		 * debug purpose
 		 * @ignore
 		 */
