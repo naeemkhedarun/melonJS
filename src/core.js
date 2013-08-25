@@ -1472,6 +1472,11 @@ window.me = window.me || {};
 
 				api.world.draw(frameBuffer, api.viewport);
 
+				// collision detection debug
+				if (me.debug.renderCollisionGrid) {
+					me.collision.draw(frameBuffer);
+				}
+
 				//restore context
 				frameBuffer.restore();
 				
