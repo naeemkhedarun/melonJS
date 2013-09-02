@@ -22,10 +22,14 @@ var game = {
 			alert("Sorry but your browser does not support html 5 canvas. Please try with another one!");
 			return;
 		}
-		
-		// install the debug panel plugin
-		me.plugin.register(debugPanel, "debug");
-		me.debug.renderCollisionGrid = true;
+
+		// add "#debug" to the URL to enable the debug Panel
+		if (document.location.hash === "#debug") {
+			window.onReady(function () {
+				me.plugin.register.defer(debugPanel, "debug");
+				me.debug.renderCollisionGrid = true;
+			});
+		}
 		
 		// initialize the "sound engine"
 		me.audio.init("mp3,ogg");

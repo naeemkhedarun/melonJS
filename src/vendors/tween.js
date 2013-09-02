@@ -39,6 +39,7 @@
 		var _reversed = false;
 		var _delayTime = 0;
 		var _startTime = null;
+		var _pauseTime = 0;
 		var _easingFunction = me.Tween.Easing.Linear.None;
 		var _interpolationFunction = me.Tween.Interpolation.Linear;
 		var _chainedTweens = [];
@@ -212,7 +213,9 @@
 		 * @param {me.Tween#Easing} easing easing function
 		 */
 		this.easing = function ( easing ) {
-
+			if (typeof easing !== 'function') {
+				throw "melonJS: invalid easing function for me.Tween.easing()";
+			}
 			_easingFunction = easing;
 			return this;
 
