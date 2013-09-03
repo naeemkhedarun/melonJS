@@ -338,7 +338,9 @@
 
 		/**
 		 * Entity collision Box<br>
+		 * (reference to me.ObjectEntity.shapes[0].getBounds)
 		 * @public
+		 * @deprecated
 		 * @type me.Rect
 		 * @name collisionBox
 		 * @memberOf me.ObjectEntity
@@ -346,12 +348,23 @@
 		collisionBox : null,
 
 		/**
+<<<<<<< HEAD
 		 * Private collision state<br>
 		 * @private
 		 * @type Object
 		 * @name me.ObjectEntity#_collision
 		 */
 		_collision : null,
+=======
+		 * Entity collision shapes<br>
+		 * (RFU - Reserved for Future Usage)
+		 * @protected
+		 * @type Object[]
+		 * @name shapes
+		 * @memberOf me.ObjectEntity
+		 */
+		shapes : null,
+>>>>>>> origin/master
 
 		/**
 		 * The entity renderable object (if defined)
@@ -519,6 +532,7 @@
 			 */
 			this.disableTopLadderCollision = false;
 
+<<<<<<< HEAD
 			// to enable collision detection
 			this.collisionMask = typeof(settings.collisionMask) !== "undefined" ?
 				settings.collisionMask : 0xFFFFFFFF;
@@ -541,6 +555,20 @@
 			me.collision.updateMovement(this);
 
 			// to know if our object can break tiles
+=======
+			// to enable collision detection			
+			this.collidable = typeof(settings.collidable) !== "undefined" ?	settings.collidable : true;
+			
+			// default objec type
+			this.type = settings.type || 0;
+			
+			// default flip value
+			this.lastflipX = this.lastflipY = false;
+			
+			// ref to the collision map
+			this.collisionMap = me.game.collisionMap;
+						
+>>>>>>> origin/master
 			/**
 			 * Define if an entity can go through breakable tiles<br>
 			 * default value : false<br>
@@ -559,6 +587,10 @@
 			 * @memberOf me.ObjectEntity
 			 */
 			this.onTileBreak = null;
+
+            // add a default shape rectangle
+            this.addShape(new me.Rect(this.pos, this.width, this.height));
+
 		},
 
 		/**
@@ -576,7 +608,50 @@
 		 */
 		updateColRect : function(x, w, y, h) {
 			this.collisionBox.adjustSize(x, w, y, h);
+<<<<<<< HEAD
 			this._collision.range.adjustSize(x, w, y, h);
+=======
+		},
+
+        /**
+		 * add a collision shape to this entity<
+		 * @name addShape
+		 * @memberOf me.ObjectEntity
+         * @public
+		 * @function
+		 * @param {me.objet} shape a shape object
+		 */
+		addShape : function(shape) {
+			if (this.shapes === null) {
+                this.shapes = [];
+            }
+            this.shapes.push(shape);
+            
+            // some hack to get the collisionBox working in this branch
+            // to be removed once the ticket #103 will be done
+            if (this.shapes.length == 1) {
+                this.collisionBox = this.shapes[0].getBounds();
+                // collisionBox pos vector is a reference to this pos vector
+                this.collisionBox.pos = this.pos;
+            }
+		},
+         
+		/**
+		 * onCollision Event function<br>
+		 * called by the game manager when the object collide with shtg<br>
+		 * by default, if the object type is Collectable, the destroy function is called
+		 * @name onCollision
+		 * @memberOf me.ObjectEntity
+		 * @function
+		 * @param {me.Vector2d} res collision vector
+		 * @param {me.ObjectEntity} obj the other object that hit this object
+		 * @protected
+		 */
+		onCollision : function(res, obj) {
+			// destroy the object if collectable
+			if (this.collidable	&& (this.type == me.game.COLLECTABLE_OBJECT))
+				me.game.remove(this);
+>>>>>>> origin/master
 		},
 
 		/**
@@ -977,11 +1052,11 @@
 		/**
 		 * @ignore	
 		 */
-		getRect : function() {
+		getBounds : function() {
 			if (this.renderable) {
 				// translate the renderable position since its 
 				// position is relative to this entity
-				return this.renderable.getRect().translateV(this.pos);
+				return this.renderable.getBounds().translateV(this.pos);
 			}
 			return null;
 		},
@@ -1028,7 +1103,11 @@
 			// Free memory
 			this.pos = null;
 			this.collisionBox = null;
+<<<<<<< HEAD
 			this._collision = null;
+=======
+            this.shapes = [];
+>>>>>>> origin/master
 		},
 
 		/**

@@ -53,20 +53,6 @@
 		rangeV : null,
 
 		/**
-		 * Define the object anchoring point<br>
-		 * This is used when positioning, or scaling the object<br>
-		 * The anchor point is a value between 0.0 and 1.0 (1.0 being the maximum size of the object) <br>
-		 * (0, 0) means the top-left corner, <br> 
-		 * (1, 1) means the bottom-right corner, <br>
-		 * default anchoring point is the center (0.5, 0.5) of the object.
-		 * @public
-		 * @type me.Vector2d
-		 * @name anchorPoint
-		 * @memberOf me.Rect
-		 */
-		anchorPoint: null,
-				
-		/**
 		 * left coordinate of the Rectange<br>
 		 * takes in account the adjusted size of the rectangle (if set)
 		 * @public
@@ -126,6 +112,9 @@
 		// half width/height
 		hWidth : 0,
 		hHeight : 0,
+
+		// the shape type
+		shapeType : "Rectangle",
 		
 		
 		/** @ignore */
@@ -150,9 +139,6 @@
 			this.hWidth = ~~(w / 2);
 			this.hHeight = ~~(h / 2);
 			
-			// set the default anchor point (middle of the sprite)
-			this.anchorPoint = new me.Vector2d(0.5, 0.5);
-
 			// redefine some properties to ease our life when getting the rectangle coordinates
 			// redefine some properties to ease our life when getting the rectangle coordinates
 			Object.defineProperty(this, "left", {
@@ -212,16 +198,27 @@
 			this.hHeight = ~~(h / 2);
 		},
 
-		/**
-		 * return a new Rect with this rectangle coordinates
-		 * @name getRect
-		 * @memberOf me.Rect
-		 * @function
-		 * @return {me.Rect} new rectangle	
-		 */
-		getRect : function() {
-			return new me.Rect(this.pos.clone(), this.width, this.height);
-		},
+        /**
+         * returns the bounding box for this shape, the smallest rectangle object completely containing this shape.
+         * @name getBounds
+         * @memberOf me.Rect
+         * @function
+         * @return {me.Rect} new rectangle	
+         */
+        getBounds : function() {
+            return this.clone();
+        },
+        
+        /**
+         * clone this rectangle
+         * @name clone
+         * @memberOf me.Rect
+         * @function
+         * @return {me.Rect} new rectangle	
+         */
+        clone : function() {
+            return new me.Rect(this.pos.clone(), this.width, this.height);
+        },
 		
 		/**
 		 * translate the rect by the specified offset
@@ -466,6 +463,64 @@
 		},
 
 		/**
+<<<<<<< HEAD
+=======
+		 * AABB vs AABB collission dectection<p>
+		 * If there was a collision, the return vector will contains the following values: 
+		 * @example
+		 * if (v.x != 0 || v.y != 0)
+		 * { 	
+		 *   if (v.x != 0)
+		 *   {
+		 *      // x axis
+		 *      if (v.x<0)
+		 *         console.log("x axis : left side !");
+		 *      else
+		 *         console.log("x axis : right side !");
+		 *   }
+		 *   else
+		 *   {
+		 *      // y axis
+		 *      if (v.y<0)
+		 *         console.log("y axis : top side !");
+		 *      else
+		 *         console.log("y axis : bottom side !");			
+		 *   }
+		 *		
+		 * }
+		 * @ignore
+		 * @param {me.Rect} rect
+		 * @return {me.Vector2d} 
+		 */
+		collideWithRectangle : function(/** {me.Rect} */ rect) {
+			// response vector
+			var p = new me.Vector2d(0, 0);
+
+			// check if both box are overlaping
+			if (this.overlaps(rect)) {
+				// compute delta between this & rect
+				var dx = this.left + this.hWidth  - rect.left - rect.hWidth;
+				var dy = this.top  + this.hHeight - rect.top  - rect.hHeight;
+
+				// compute penetration depth for both axis
+				p.x = (rect.hWidth + this.hWidth) - (dx < 0 ? -dx : dx); // - Math.abs(dx);
+				p.y = (rect.hHeight + this.hHeight)
+						- (dy < 0 ? -dy : dy); // - Math.abs(dy);
+
+				// check and "normalize" axis
+				if (p.x < p.y) {
+					p.y = 0;
+					p.x = dx < 0 ? -p.x : p.x;
+				} else {
+					p.x = 0;
+					p.y = dy < 0 ? -p.y : p.y;
+				}
+			}
+			return p;
+		},
+
+		/**
+>>>>>>> origin/master
 		 * debug purpose
 		 * @ignore
 		 */

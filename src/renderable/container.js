@@ -315,6 +315,48 @@
 			}
 		},
 
+<<<<<<< HEAD
+=======
+			// this should be replace by a list of the 4 adjacent cell around the object requesting collision
+			for ( var i = this.children.length, obj; i--, obj = this.children[i];) {
+			
+				if ( (obj.inViewport || obj.alwaysUpdate ) && obj.collidable ) {
+					
+					// recursivly check through
+					if (obj instanceof me.ObjectContainer) {
+					
+						res = obj.collideType(objA, type, multiple); 
+						if (multiple) {
+							mres.concat(res);
+						} else if (res) {
+							// the child container returned collision information
+							return res;
+						}
+						
+					} else if ( (obj!=objA) && (!type || (obj.type === type)) ) {
+			
+						res = obj.collisionBox["collideWith"+objA.shapeType].call(obj.collisionBox, objA.collisionBox);
+						
+						if (res.x != 0 || res.y != 0) {
+							// notify the object
+							obj.onCollision.call(obj, res, objA);
+							// return the type (deprecated)
+							res.type = obj.type;
+							// return a reference of the colliding object
+							res.obj = obj;
+							// stop here if we don't look for multiple collision detection
+							if (!multiple) {
+								return res;
+							}
+							mres.push(res);
+						}
+					}
+				}
+			}
+			return multiple?mres:null;
+		},
+		
+>>>>>>> origin/master
 		/**
 		 * Manually trigger the sort of all the childs in the container</p>
 		 * @name sort
@@ -409,7 +451,7 @@
 	
 				// check if object is visible
 				obj.inViewport = obj.visible && (
-					obj.floating || (obj.getRect && me.game.viewport.isVisible(obj))
+					obj.floating || (obj.getBounds && me.game.viewport.isVisible(obj))
 				);
 				
 				// update our object
