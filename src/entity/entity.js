@@ -348,15 +348,15 @@
 		collisionBox : null,
 
 		/**
-<<<<<<< HEAD
 		 * Private collision state<br>
 		 * @private
 		 * @type Object
 		 * @name me.ObjectEntity#_collision
 		 */
 		_collision : null,
-=======
-		 * Entity collision shapes<br>
+        
+        /*
+         * Entity collision shapes<br>
 		 * (RFU - Reserved for Future Usage)
 		 * @protected
 		 * @type Object[]
@@ -364,7 +364,6 @@
 		 * @memberOf me.ObjectEntity
 		 */
 		shapes : null,
->>>>>>> origin/master
 
 		/**
 		 * The entity renderable object (if defined)
@@ -532,7 +531,6 @@
 			 */
 			this.disableTopLadderCollision = false;
 
-<<<<<<< HEAD
 			// to enable collision detection
 			this.collisionMask = typeof(settings.collisionMask) !== "undefined" ?
 				settings.collisionMask : 0xFFFFFFFF;
@@ -554,8 +552,6 @@
 			// Set initial position in collision spacial grid
 			me.collision.updateMovement(this);
 
-			// to know if our object can break tiles
-=======
 			// to enable collision detection			
 			this.collidable = typeof(settings.collidable) !== "undefined" ?	settings.collidable : true;
 			
@@ -568,7 +564,6 @@
 			// ref to the collision map
 			this.collisionMap = me.game.collisionMap;
 						
->>>>>>> origin/master
 			/**
 			 * Define if an entity can go through breakable tiles<br>
 			 * default value : false<br>
@@ -608,9 +603,7 @@
 		 */
 		updateColRect : function(x, w, y, h) {
 			this.collisionBox.adjustSize(x, w, y, h);
-<<<<<<< HEAD
 			this._collision.range.adjustSize(x, w, y, h);
-=======
 		},
 
         /**
@@ -651,7 +644,6 @@
 			// destroy the object if collectable
 			if (this.collidable	&& (this.type == me.game.COLLECTABLE_OBJECT))
 				me.game.remove(this);
->>>>>>> origin/master
 		},
 
 		/**
@@ -1103,11 +1095,8 @@
 			// Free memory
 			this.pos = null;
 			this.collisionBox = null;
-<<<<<<< HEAD
 			this._collision = null;
-=======
             this.shapes = [];
->>>>>>> origin/master
 		},
 
 		/**

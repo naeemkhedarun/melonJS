@@ -463,8 +463,6 @@
 		},
 
 		/**
-<<<<<<< HEAD
-=======
 		 * AABB vs AABB collission dectection<p>
 		 * If there was a collision, the return vector will contains the following values: 
 		 * @example
@@ -520,7 +518,6 @@
 		},
 
 		/**
->>>>>>> origin/master
 		 * debug purpose
 		 * @ignore
 		 */
