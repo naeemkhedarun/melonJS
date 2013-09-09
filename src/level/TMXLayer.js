@@ -307,11 +307,13 @@
 			// set the layer alpha value
 			context.globalAlpha = this.opacity;
 			
+			var sw, sh;
+
 			// if not scrolling ratio define, static image
 			if (0 === this.ratio.x && 0 === this.ratio.y){
 				// static image
-				var sw = Math.min(rect.width, this.imagewidth);
-				var sh = Math.min(rect.height, this.imageheight);
+				sw = Math.min(rect.width, this.imagewidth);
+				sh = Math.min(rect.height, this.imageheight);
 				
 				context.drawImage(this.image, 
 								  rect.left, rect.top,		//sx, sy
@@ -328,8 +330,8 @@
 				var dx = 0;
 				var dy = 0;				
 				
-				var sw = Math.min(this.imagewidth - sx, this.width);
-				var sh = Math.min(this.imageheight - sy, this.height);
+				sw = Math.min(this.imagewidth  - sx, this.width);
+				sh = Math.min(this.imageheight - sy, this.height);
 				  
 				do {
 					do {
@@ -444,7 +446,7 @@
 			
 			// additional TMX flags
 			this.name = me.mapReader.TMXParser.getStringAttribute(layer, me.TMX_TAG_NAME);
-			this.visible = (me.mapReader.TMXParser.getIntAttribute(layer, me.TMX_TAG_VISIBLE, 1) == 1);
+			this.visible = (me.mapReader.TMXParser.getIntAttribute(layer, me.TMX_TAG_VISIBLE, 1) === 1);
 			this.opacity = me.mapReader.TMXParser.getFloatAttribute(layer, me.TMX_TAG_OPACITY, 1.0).clamp(0.0, 1.0);
 			this.cols = me.mapReader.TMXParser.getIntAttribute(layer, me.TMX_TAG_WIDTH);
 			this.rows = me.mapReader.TMXParser.getIntAttribute(layer, me.TMX_TAG_HEIGHT);
@@ -486,8 +488,8 @@
 			this.name = layer[me.TMX_TAG_NAME];
 			this.visible = layer[me.TMX_TAG_VISIBLE];
 			this.opacity = parseFloat(layer[me.TMX_TAG_OPACITY]).clamp(0.0, 1.0);
-			this.cols = parseInt(layer[me.TMX_TAG_WIDTH]);
-			this.rows = parseInt(layer[me.TMX_TAG_HEIGHT]);
+			this.cols = parseInt(layer[me.TMX_TAG_WIDTH], 10);
+			this.rows = parseInt(layer[me.TMX_TAG_HEIGHT], 10);
 			
 			// layer "real" size
 			this.width = this.cols * this.tilewidth;
@@ -498,7 +500,7 @@
 			me.TMXUtils.applyTMXPropertiesFromJSON(this, layer);
 			
 			// check for the correct rendering method
-			if (typeof (this.preRender) == 'undefined') {
+			if (typeof (this.preRender) === 'undefined') {
 				this.preRender = me.sys.preRender;
 			}
 
@@ -708,7 +710,7 @@
 			// dynamically render the layer
 			else {
 				// set the layer alpha value
-				var _alpha = context.globalAlpha
+				var _alpha = context.globalAlpha;
 				context.globalAlpha = this.opacity;
 
 				// draw the layer

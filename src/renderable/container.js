@@ -180,7 +180,7 @@
 		 * @return {Boolean}
 		 */
 		hasChild : function(child) {
-			return (this == child.ancestor);
+			return this === child.ancestor;
 		},
 		
 		/**
@@ -212,7 +212,7 @@
 						if (obj[prop].match(_regExp)) {
 							objList.push(obj);
 						}
-					} else if (obj[prop] == value) {
+					} else if (obj[prop] === value) {
 						objList.push(obj);
 					}
 				}
@@ -345,8 +345,8 @@
 					self.pendingSort = null;
 					// make sure we redraw everything
 					me.game.repaint();
-				}).defer(this);
-			};
+				}.defer(this));
+			}
 		},
 		
 		/**
@@ -431,7 +431,7 @@
 				
 				if ((obj.inViewport || this.floating) && obj.isRenderable) {
 
-					if (obj.floating==true) {
+					if (obj.floating === true) {
 						context.save();
 						// translate back object
 						context.translate(
@@ -443,7 +443,7 @@
 					// draw the object
 					obj.draw(context, rect);
 
-					if (obj.floating==true) {
+					if (obj.floating === true) {
 						context.restore();
 					}
 

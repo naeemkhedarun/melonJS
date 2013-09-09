@@ -424,9 +424,9 @@ window.me = window.me || {};
 		// Copy the properties over onto the new prototype
 		for ( var name in prop) {
 			// Check if we're overwriting an existing function
-			proto[name] = typeof prop[name] === "function"
-					&& typeof parent[name] === "function"
-					&& fnTest.test(prop[name]) ? (function(name, fn) {
+			proto[name] = typeof prop[name] === "function" &&
+						  typeof parent[name] === "function" &&
+						  fnTest.test(prop[name]) ? (function(name, fn) {
 				return function() {
 					var tmp = this.parent;
 
@@ -476,11 +476,11 @@ window.me = window.me || {};
 		 * newObject = Object.create(oldObject);
 		 */
 		Object.create = function(o) {
-			function _fn() {};
+			function _fn() {}
 			_fn.prototype = o;
 			return new _fn();
 		};
-	};
+	}
 
 	/**
 	 * The built in Function Object
@@ -490,7 +490,7 @@ window.me = window.me || {};
 	
 	if (!Function.prototype.bind) {
 		/** @ignore */
-		function Empty() {};
+		function Empty() {}
 		
 		/**
 		 * Binds this function to the given context by wrapping it in another function and returning the wrapper.<p>
@@ -563,9 +563,9 @@ window.me = window.me || {};
 					last = now;
 					return callback.apply(null, args);
 				}
-			}
+			};
 		};
-	};
+	}
 	
 	
 	if (typeof Date.now === "undefined") {
@@ -628,8 +628,8 @@ window.me = window.me || {};
 				// we should never reach this point....
 				throw "melonJS: Object.defineProperty not supported";
 			}
-		}
-	};
+		};
+	}
 
 	/**
 	 * Add isObject fn to Object.
@@ -679,7 +679,7 @@ window.me = window.me || {};
 		String.prototype.trim = function () {  
 			return (this.replace(/^\s+/, '')).replace(/\s+$/, ''); 
 		};  
-	}; 
+	}
 	
 	/**
 	 * add isNumeric fn to the string object
@@ -1071,8 +1071,8 @@ window.me = window.me || {};
 		api.init = function(width, height) {
 			if (!initialized) {
 				// if no parameter specified use the system size
-				var width = width || me.video.getWidth();
-				var height = height || me.video.getHeight();
+				width  = width  || me.video.getWidth();
+				height = height || me.video.getHeight();
 
 				// create a defaut viewport of the same size
 				api.viewport = new me.Viewport(0, 0, width, height);
@@ -1204,9 +1204,9 @@ window.me = window.me || {};
 					entity.z = group.z;
 
 					//apply group default opacity value if defined
-					if (entity.renderable && typeof(entity.renderable.setOpacity) == 'function') {
+					if (entity.renderable && typeof entity.renderable.setOpacity === 'function') {
 						entity.renderable.setOpacity(group.opacity);
-					};
+					}
 
 					// add the entity into the target container
 					targetContainer.addChild(entity);
@@ -1223,7 +1223,7 @@ window.me = window.me || {};
 				
 				}
 
-			};
+			}
 
 			// sort everything (recursively)
 			api.world.sort(true);
@@ -1362,7 +1362,7 @@ window.me = window.me || {};
 					pendingRemove = (function (obj) {
 						obj.ancestor.removeChild(obj);
 						pendingRemove = null;
-					}).defer(obj);
+					}.defer(obj));
 				}
 			}
 		};

@@ -198,13 +198,15 @@
 		obj.newInstanceOf = function(data) {
 			var name = typeof data === 'string' ? data.toLowerCase() : undefined;
 			if (name && entityClass[name]) {
+				var proto;
 				if (!entityClass[name]['pool']) {
-					var proto = entityClass[name]["class"];
+					proto = entityClass[name]["class"];
 					arguments[0] = proto;
 					return new (proto.bind.apply(proto, arguments))();
 				}
 				
-				var obj, entity = entityClass[name], proto = entity["class"];
+				var obj, entity = entityClass[name];
+				proto = entity["class"];
 				if (entity["pool"].length > 0) {
 					obj = entity["pool"].pop();
 					obj.init.apply(obj, Array.prototype.slice.call(arguments, 1));
@@ -241,7 +243,7 @@
 		 * @function
 		 */
 		obj.purge = function() {
-			for (className in entityClass) {
+			for (var className in entityClass) {
 				entityClass[className]["pool"] = [];
 			}
 		};
@@ -388,7 +390,7 @@
 						~~settings.spriteheight || ~~settings.height);
 			
 			if (settings.image) {
-				var image = (typeof settings.image == "string") ? me.loader.getImage(settings.image) : settings.image
+				var image = typeof settings.image === "string" ? me.loader.getImage(settings.image) : settings.image;
 				this.renderable = new me.AnimationSheet(0, 0, image,
 														~~settings.spritewidth,
 														~~settings.spriteheight,
@@ -454,7 +456,7 @@
 			 * @name gravity
 			 * @memberOf me.ObjectEntity
 			 */
-			this.gravity = (me.sys.gravity!=undefined)?me.sys.gravity:0.98;
+			this.gravity = me.sys.gravity!==undefined ? me.sys.gravity : 0.98;
 
 			// just to identify our object
 			this.isEntity = true;
@@ -589,11 +591,11 @@
                 this.addShape(new me.Ellipse(new me.Vector2d(0,0), this.width, this.height));
             } 
             else if ((settings.isPolygon===true) || (settings.isPolyline===true)) {
-            	// add a polyshape
+                // add a polyshape
                 this.addShape(new me.PolyShape(new me.Vector2d(0,0), settings.points, settings.isPolygon));
-            	// set the entity object based on the bounding box size ?
-            	this.width = this.collisionBox.width;
-            	this.height = this.collisionBox.height;
+                // set the entity object based on the bounding box size ?
+                this.width = this.collisionBox.width;
+                this.height = this.collisionBox.height;
             } 
             else {
                 // add a rectangle
@@ -638,7 +640,7 @@
             
             // some hack to get the collisionBox working in this branch
             // to be removed once the ticket #103 will be done
-            if (this.shapes.length == 1) {
+            if (this.shapes.length === 1) {
                 this.collisionBox = this.shapes[0].getBounds();
                 // collisionBox pos vector is a reference to this pos vector
                 this.collisionBox.pos = this.pos;
@@ -658,7 +660,7 @@
 		 */
 		onCollision : function(res, obj) {
 			// destroy the object if collectable
-			if (this.collidable	&& (this.type == me.game.COLLECTABLE_OBJECT))
+			if (this.collidable	&& (this.type === me.game.COLLECTABLE_OBJECT))
 				me.game.remove(this);
 		},
 
@@ -673,8 +675,8 @@
 		 * @protected
 		 */
 		setVelocity : function(x, y) {
-			this.accel.x = (x != 0) ? x : this.accel.x;
-			this.accel.y = (y != 0) ? y : this.accel.y;
+			this.accel.x = x !== 0 ? x : this.accel.x;
+			this.accel.y = y !== 0 ? y : this.accel.y;
 
 			// limit by default to the same max value
 			this.setMaxVelocity(x,y);
@@ -716,7 +718,7 @@
 		 * @param {Boolean} flip enable/disable flip
 		 */
 		flipX : function(flip) {
-			if (flip != this.lastflipX) {
+			if (flip !== this.lastflipX) {
 				this.lastflipX = flip;
 				if (this.renderable && this.renderable.flipX) {
 					// flip the animation
@@ -736,7 +738,7 @@
 		 * @param {Boolean} flip enable/disable flip
 		 */
 		flipY : function(flip) {
-			if (flip != this.lastflipY) {
+			if (flip !== this.lastflipY) {
 				this.lastflipY = flip;
 				if (this.renderable  && this.renderable.flipY) {
 					// flip the animation
@@ -956,9 +958,9 @@
 				vel.y = me.utils.applyFriction(vel.y,this.friction.y);
 
 			// cap velocity
-			if (vel.y !=0)
+			if (vel.y !== 0)
 				vel.y = vel.y.clamp(-this.maxVel.y,this.maxVel.y);
-			if (vel.x !=0)
+			if (vel.x !== 0)
 				vel.x = vel.x.clamp(-this.maxVel.x,this.maxVel.x);
 		},
 
@@ -1123,7 +1125,7 @@
 		 * @function
 		 */
 		onDestroyEvent : function() {
-			;// to be extended !
+			// to be extended !
 		}
 
 
