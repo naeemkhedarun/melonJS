@@ -144,10 +144,18 @@
 				this.parent(context);
 
 				// check if debug mode is enabled
-				if (me.debug.renderHitBox && this.collisionBox) {
-					// draw the collisionBox
-					this.collisionBox.draw(context, "red");
+				if (me.debug.renderHitBox && this.shapes.length) {
+                    // draw the original collisionBox
+                    this.collisionBox.draw(context, "red");
+                    // draw the original shape if not a rectangle
+             		if (this.shapes[0].shapeType!=="Rectangle") {
+             			// draw the original shape as well
+						context.translate(this.pos.x, this.pos.y);
+	                    this.shapes[0].draw(context, "red");
+	                    context.translate(-this.pos.x, -this.pos.y);
+                    }
 				}
+                
 				if (me.debug.renderVelocity) {
 					// draw entity current velocity
 					var x = ~~(this.pos.x + this.hWidth);

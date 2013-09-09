@@ -270,7 +270,7 @@
 		 * @function
 		 */
 		initFromXML :  function(tmxObj, tilesets, z) {
-			this.name = me.mapReader.TMXParser.getStringAttribute(tmxObj, me.TMX_TAG_NAME);
+     		this.name = me.mapReader.TMXParser.getStringAttribute(tmxObj, me.TMX_TAG_NAME);
 			this.x = me.mapReader.TMXParser.getIntAttribute(tmxObj, me.TMX_TAG_X);
 			this.y = me.mapReader.TMXParser.getIntAttribute(tmxObj, me.TMX_TAG_Y);
 			this.z = z;
@@ -278,28 +278,45 @@
 			this.width = me.mapReader.TMXParser.getIntAttribute(tmxObj, me.TMX_TAG_WIDTH, 0);
 			this.height = me.mapReader.TMXParser.getIntAttribute(tmxObj, me.TMX_TAG_HEIGHT, 0);
 			this.gid = me.mapReader.TMXParser.getIntAttribute(tmxObj, me.TMX_TAG_GID, null);
+            
+            this.isEllipse = false;
+            this.isPolygon = false;
+            this.isPolyline = false;
+            
 
 			// check if the object has an associated gid	
 			if (this.gid) {
 				this.setImage(this.gid, tilesets);
 			} else {
-				var polygon = tmxObj.getElementsByTagName(me.TMX_TAG_POLYGON);
-				this.isPolygon = true;
-				if (!polygon.length) {
-					polygon = tmxObj.getElementsByTagName(me.TMX_TAG_POLYLINE);
-					this.isPolygon = false;
-					this.isPolyline = true;
-				}
-
-				if (polygon.length) {
-					this.points = [];
-					var points = me.mapReader.TMXParser.getStringAttribute(polygon[0], me.TMX_TAG_POINTS);
-					var point = points.split(" ");
-					for (var i = 0, v; i < point.length; i++) {
-						v = point[i].split(",");
-						this.points[i] = new me.Vector2d(+v[0], +v[1]);
-					}
-				}
+                
+                // check if this is an ellipse 
+                if (tmxObj.getElementsByTagName(me.TMX_TAG_ELLIPSE).length) {
+                    this.isEllipse = true;
+                } else {
+                	// polygone || polyline
+                	var points = tmxObj.getElementsByTagName(me.TMX_TAG_POLYGON);
+                    if (points.length) {
+                    	this.isPolygon = true;
+                    } else {
+                    	points = tmxObj.getElementsByTagName(me.TMX_TAG_POLYLINE);
+                    	if (points.length) {
+                    		this.isPolyline = true;
+                    	}
+                    }
+                    if (points.length) {
+                        this.points = [];
+                        // get a point array
+                        var point = me.mapReader.TMXParser.getStringAttribute(
+                        	points[0], 
+                        	me.TMX_TAG_POINTS
+                        ).split(" ");
+                        // and normalize them into an array of vectors
+                        for (var i = 0, v; i < point.length; i++) {
+                            v = point[i].split(",");
+                            this.points.push(new me.Vector2d(+v[0], +v[1]));
+                        }
+                    }	
+                }
 			}
 			
 			// Adjust the Position to match Tiled
@@ -317,7 +334,6 @@
 		 */
 		initFromJSON :  function(tmxObj, tilesets, z) {
 			
-			
 			this.name = tmxObj[me.TMX_TAG_NAME];
 			this.x = parseInt(tmxObj[me.TMX_TAG_X]);
 			this.y = parseInt(tmxObj[me.TMX_TAG_Y]);
@@ -327,26 +343,36 @@
 			this.height = parseInt(tmxObj[me.TMX_TAG_HEIGHT] || 0);
 			this.gid = parseInt(tmxObj[me.TMX_TAG_GID]) || null;
 			
-			
+			this.isEllipse = false;
+            this.isPolygon = false;
+            this.isPolyline = false;
+            
 			// check if the object has an associated gid	
 			if (this.gid) {
 				this.setImage(this.gid, tilesets);
 			}
 			else {
-				var polygon = tmxObj[me.TMX_TAG_POLYGON];
-				this.isPolygon = polygon!==undefined;
-				if (!polygon) {
-					polygon = tmxObj[me.TMX_TAG_POLYLINE];
-					this.isPolygon = false;
-				}
-				if (polygon) {
-					this.points = [];
-					var self = this;
-					var i = 0;
-					polygon.forEach(function(point) {
-						self.points[i++] = new me.Vector2d(parseInt(point.x), parseInt(point.y));
-					});
-				}
+                if (tmxObj[me.TMX_TAG_ELLIPSE]!==undefined) {
+                    this.isEllipse = true;
+                } 
+                else {
+                    var points = tmxObj[me.TMX_TAG_POLYGON];
+                    if (points !== undefined) {
+                    	this.isPolygon = true;
+                    } else {
+                    	points = tmxObj[me.TMX_TAG_POLYLINE];
+                    	if (points !== undefined) {
+                    		this.isPolyline = true;
+                    	}
+                    }
+                    if (points !== undefined) {
+                        this.points = [];
+                        var self = this;
+                        points.forEach(function(point) {
+                            self.points.push(new me.Vector2d(parseInt(point.x), parseInt(point.y)));
+                        });
+                    }
+                   }
 			}
 			
 			// Adjust the Position to match Tiled
