@@ -609,8 +609,6 @@
 		/**
 		 * specify the size of the hit box for collision detection<br>
 		 * (allow to have a specific size for each object)<br>
-		 * e.g. : object with resized collision box :<br>
-		 * <img src="images/me.Rect.colpos.png"/>
 		 * @name updateColRect
 		 * @memberOf me.ObjectEntity
 		 * @function
@@ -641,9 +639,11 @@
             // some hack to get the collisionBox working in this branch
             // to be removed once the ticket #103 will be done
             if (this.shapes.length === 1) {
-                this.collisionBox = this.shapes[0].getBounds();
-                // collisionBox pos vector is a reference to this pos vector
-                this.collisionBox.pos = this.pos;
+                if (this.shapes[0].shapeType === "Rectangle") {
+                     this.collisionBox = this.shapes[0];
+                } else {
+                    this.collisionBox = this.shapes[0].getBounds();
+                }   
             }
 		},
          

@@ -30,19 +30,6 @@
 		pos : null,
 
 		/**
-		 * allow to reduce the collision box size<br>
-		 * while keeping the original position vector (pos)<br>
-		 * corresponding to the entity<br>
-		 * colPos is a relative offset to pos
-		 * @ignore
-		 * @type me.Vector2d
-		 * @name colPos
-		 * @memberOf me.Rect
-		 * @see me.Rect#adjustSize
-		 */
-		colPos : null,
-
-		/**
 		 * allow expanding and contracting the rect with a vector<br>
 		 * while keeping its original size and shape<br>
 		 * @private
@@ -122,11 +109,6 @@
 			// reference to the initial position
 			// we don't copy it, so we can use it later
 			this.pos = v;
-
-			// allow to reduce the hitbox size
-			// while on keeping the original pos vector
-			// corresponding to the entity
-			this.colPos = new me.Vector2d();
 
 			// Allow expanding and contracting the rect with a vector
 			// while keeping its original size and shape
@@ -279,8 +261,7 @@
 
 		/**
 		 * update the size of the collision rectangle<br>
-		 * the colPos Vector is then set as a relative offset to the initial position (pos)<br>
-		 * <img src="images/me.Rect.colpos.png"/>
+         * @deprecated use me.Rect.set()
 		 * @name adjustSize
 		 * @memberOf me.Rect
 		 * @function
@@ -291,62 +272,17 @@
 		 */
 		adjustSize : function(x, w, y, h) {
 			if (x !== -1) {
-				this.colPos.x = x;
+				this.pos.x = x;
 				this.width = w;
 				this.hWidth = ~~(this.width / 2);
+            }
 				
-				// avoid Property definition if not necessary
-				if (this.left !== this.pos.x + this.colPos.x) {
-					// redefine our properties taking colPos into account
-					Object.defineProperty(this, "left", {
-						get : function() {
-							var x = this.pos.x + this.colPos.x;
-							var xv = x + this.rangeV.x;
-							return x < xv ? x : xv;
-						},
-						configurable : true
-					});
-				}
-				if (this.right !== this.pos.x + this.colPos.x + this.width) {
-					Object.defineProperty(this, "right", {
-						get : function() {
-							var x = this.pos.x + this.colPos.x + this.width;
-							var xv = x + this.rangeV.x;
-							return x > xv ? x : xv;
-						},
-						configurable : true
-					});
-				}
-			}
 			if (y !== -1) {
-				this.colPos.y = y;
+				this.pos.y = y;
 				this.height = h;
 				this.hHeight = ~~(this.height / 2);
-				
-				// avoid Property definition if not necessary
-				if (this.top !== this.pos.y + this.colPos.y) {
-					// redefine our properties taking colPos into account
-					Object.defineProperty(this, "top", {
-						get : function() {
-							var y = this.pos.y + this.colPos.y;
-							var yv = y + this.rangeV.y;
-							return y < yv ? y : yv;
-						},
-						configurable : true
-					});
-				}
-				if (this.bottom !== this.pos.y + this.colPos.y + this.height) {
-					Object.defineProperty(this, "bottom", {
-						get : function() {
-							var y = this.pos.y + this.colPos.y + this.height;
-							var yv = y + this.rangeV.y;
-							return y > yv ? y : yv;
-						},
-						configurable : true
-					});
-				}
-			}
-		},
+            }
+        },
 
 		/**
 		 *	
@@ -356,7 +292,7 @@
 		 * @param sw the sprite width
 		 */
 		flipX : function(sw) {
-			this.colPos.x = sw - this.width - this.colPos.x;
+			this.pos.x = sw - this.width - this.pos.x;
 			this.hWidth = ~~(this.width / 2);
 		},
 
@@ -368,7 +304,7 @@
 		 * @param sh the height width
 		 */
 		flipY : function(sh) {
-			this.colPos.y = sh - this.height - this.colPos.y;
+			this.pos.y = sh - this.height - this.pos.y;
 			this.hHeight = ~~(this.height / 2);
 		},
 		

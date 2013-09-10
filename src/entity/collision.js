@@ -464,7 +464,7 @@ me.collision = (function() {
         // COLLISION RESPONSE!
 
         // Simple AABB bounds checking
-        var colBox = objA.collisionBox;
+        var colBox = objA.shapes[0].getBounds().translateV(objA.pos);
         if ((~~colBox.bottom === ~~objB.top && objA.vel.y > 0) ||
             (~~colBox.top === ~~objB.bottom && objA.vel.y < 0)) {
 
@@ -501,6 +501,7 @@ me.collision = (function() {
         x = Math.abs(x) < Math.abs(objA.vel.x) ? x : 0;
         y = Math.abs(y) < Math.abs(objA.vel.y) ? y : 0;
 
+        // can we cache this one, or do we need a new object each time?
         return new me.Vector2d(x, y);
     };
 
