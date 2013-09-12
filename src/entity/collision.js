@@ -327,6 +327,9 @@ me.collision = (function() {
         var rows = api.rows;
         var gridwidth = api.gridwidth;
         var gridheight = api.gridheight;
+        
+        // update the range position
+        range.pos.setV(obj.pos);
 
         // Hash current position within spacial grid
         var hash =
