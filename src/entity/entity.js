@@ -383,9 +383,13 @@
 		
 		/** @ignore */
 		init : function(x, y, settings) {
-			
+            // instantiate pos here to avoid
+            // later re-instantiation
+            if (this.pos === null) {
+                this.pos = new me.Vector2d();
+            }            
 			// call the parent constructor
-			this.parent(new me.Vector2d(x, y),
+			this.parent(this.pos.set(x,y),
 						~~settings.spritewidth  || ~~settings.width,
 						~~settings.spriteheight || ~~settings.height);
 			
@@ -409,41 +413,53 @@
 			// set the object entity name
 			this.name = settings.name?settings.name.toLowerCase():"";
 
-			/**
-			 * entity current velocity<br>
-			 * @public
-			 * @type me.Vector2d
-			 * @name vel
-			 * @memberOf me.ObjectEntity
-			 */
-			this.vel = new me.Vector2d();
+            /**
+             * entity current velocity<br>
+             * @public
+             * @type me.Vector2d
+             * @name vel
+             * @memberOf me.ObjectEntity
+             */
+            if (this.vel === undefined) {
+                this.vel = new me.Vector2d();
+            }    
+            this.vel.set(0,0);
 
-			/**
-			 * entity current acceleration<br>
-			 * @public
-			 * @type me.Vector2d
-			 * @name accel
-			 * @memberOf me.ObjectEntity
-			 */
-			this.accel = new me.Vector2d();
+            /**
+             * entity current acceleration<br>
+             * @public
+             * @type me.Vector2d
+             * @name accel
+             * @memberOf me.ObjectEntity
+             */
+            if (this.accel === undefined) {
+                this.accel = new me.Vector2d();
+            }    
+            this.accel.set(0,0);
+            
+            /**
+             * entity current friction<br>
+             * @public
+             * @name friction
+             * @memberOf me.ObjectEntity
+             */
+            if (this.friction === undefined) {
+                this.friction = new me.Vector2d();
+            }    
+            this.friction.set(0,0);
 
-			/**
-			 * entity current friction<br>
-			 * @public
-			 * @name friction
-			 * @memberOf me.ObjectEntity
-			 */
-			this.friction = new me.Vector2d();
-
-			/**
-			 * max velocity (to limit entity velocity)<br>
-			 * @public
-			 * @type me.Vector2d
-			 * @name maxVel
-			 * @memberOf me.ObjectEntity
-			 */
-			this.maxVel = new me.Vector2d(1000,1000);
-
+            /**
+             * max velocity (to limit entity velocity)<br>
+             * @public
+             * @type me.Vector2d
+             * @name maxVel
+             * @memberOf me.ObjectEntity
+             */
+            if (this.maxVel === undefined) {
+                this.maxVel = new me.Vector2d();
+            }    
+            this.maxVel.set(1000, 1000);
+        
 			// some default contants
 			/**
 			 * Default gravity value of the entity<br>
@@ -461,7 +477,6 @@
 			// just to identify our object
 			this.isEntity = true;
 			
-			// dead state :)
 			/**
 			 * dead/living state of the entity<br>
 			 * default value : true
@@ -533,26 +548,9 @@
 			 */
 			this.disableTopLadderCollision = false;
 
-			// to enable collision detection
-			this.collisionMask = typeof(settings.collisionMask) !== "undefined" ?
-				settings.collisionMask : 0xFFFFFFFF;
-
-			// create a default collision rectangle
-			this.collisionBox = new me.Rect(this.pos, this.width, this.height);
-
-			// private collision properties
-			this._collision = {
-				hash : "",
-				cells : [],
-				range : new me.Rect(this.pos, this.width, this.height)
-			};
-			this._collision.range.addV(this.vel);
-
 			// Set collision type
 			this.type = settings.type || me.collision.types.NO_OBJECT;
 
-			// Set initial position in collision spacial grid
-			me.collision.updateMovement(this);
 
 			// to enable collision detection			
 			this.collidable = typeof(settings.collidable) !== "undefined" ?	settings.collidable : true;
@@ -601,8 +599,21 @@
                 // add a rectangle
                 this.addShape(new me.Rect(new me.Vector2d(0,0), this.width, this.height));
             }
-             
             
+            // to enable collision detection
+            this.collisionMask = typeof(settings.collisionMask) !== "undefined" ?
+                settings.collisionMask : 0xFFFFFFFF;
+                
+            // private collision properties
+            this._collision = {
+                hash : "",
+                cells : [],
+                range : new me.Rect(this.pos, this.width, this.height)
+            };
+            this._collision.range.addV(this.vel);
+
+            // Set initial position in collision spacial grid
+            me.collision.updateMovement(this);
 
 		},
 
@@ -1111,7 +1122,6 @@
 			me.collision.remove(this);
 
 			// Free memory
-			this.pos = null;
 			this.collisionBox = null;
 			this._collision = null;
             this.shapes = [];

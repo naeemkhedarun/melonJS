@@ -106,13 +106,17 @@
 		
 		/** @ignore */
 		init : function(v, w, h) {
-			// reference to the initial position
-			// we don't copy it, so we can use it later
-			this.pos = v;
-
+            if (this.pos === null) {
+                this.pos = new me.Vector2d();
+            }
+            this.pos.setV(v);
+            
 			// Allow expanding and contracting the rect with a vector
 			// while keeping its original size and shape
-			this.rangeV = new me.Vector2d();
+            if (this.rangeV === null) {
+                this.rangeV = new me.Vector2d();
+            }
+            this.rangeV.set(0, 0);
 
 			this.width = w;
 			this.height = h;
@@ -171,7 +175,7 @@
 		 * @param {int} h height of the rectangle	 
 		 */
 		set : function(v, w, h) {
-			this.pos = v; // Vector2d - top left corner
+			this.pos.setV(v);
 
 			this.width = w;
 			this.height = h;
@@ -504,8 +508,12 @@
 		
 		/** @ignore */
 		init : function(v, w, h) {
-            this.pos = new me.Vector2d();
-            this.radius = new me.Vector2d();
+            if (this.pos === null) {
+                this.pos = new me.Vector2d();
+            }
+            if (this.radius === null) {
+                this.radius = new me.Vector2d();
+            }
 			this.set(v, w, h);
 		},
 
@@ -622,7 +630,9 @@
 		
 		/** @ignore */
 		init : function(v, points, closed) {
-            this.pos = new me.Vector2d();
+            if (this.pos === null) {
+                this.pos = new me.Vector2d();
+            }
             this.set(v, points, closed);
 		},
 
@@ -636,7 +646,7 @@
 		 * @param {boolean} closed true if a polygone, false if a polyline	 
 		 */
 		set : function(v, points, closed) {
-			this.pos.set(v.x, v.y);
+			this.pos.setV(v);
             this.points = points;
             this.closed = (closed === true);
 		},
