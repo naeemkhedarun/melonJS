@@ -130,8 +130,41 @@
 		obj.KEYUP = "me.input.keyup";
 
 		/**
+		 * Channel Constant for mousemove or dragmove events on the game viewport <br>
+		 * Data passed : {Object} the mousemove or dragmove event <br>
+		 * @public
+		 * @constant
+		 * @type String
+		 * @name me.event#MOUSEMOVE
+		 */
+		obj.MOUSEMOVE = "me.game.mousemove";
+
+		/**
+		 * Channel Constant for dragstart events on a Draggable entity <br>
+		 * Data passed:
+		 * {Object} the drag event <br>
+		 * {Object} the Draggable entity <br>
+		 * @public
+		 * @constant
+		 * @type String
+		 * @name me.event#DRAGSTART
+		 */
+		obj.DRAGSTART = "me.game.dragstart";
+
+		/**
+		 * Channel Constant for dragend events on a Draggable entity <br>
+		 * Data passed:
+		 * {Object} the drag event <br>
+		 * {Object} the Draggable entity <br>
+		 * @public
+		 * @constant
+		 * @type String
+		 * @name me.event#DRAGEND
+		 */
+		obj.DRAGEND = "me.game.dragend";
+		
+		/**
 		 * Channel Constant for when the (browser) window is resized <br>
-		 * note the `orientationchange` event will also trigger this channel<br>
 		 * Data passed : {Event} Event object <br>
 		 * @public
 		 * @constant
@@ -139,6 +172,16 @@
 		 * @name me.event#WINDOW_ONRESIZE
 		 */
 		obj.WINDOW_ONRESIZE = "window.onresize";
+        
+        /**
+		 * Channel Constant for when the device is rotated <br>
+		 * Data passed : {Event} Event object <br>
+		 * @public
+		 * @constant
+		 * @type String
+		 * @name me.event#WINDOW_ONORIENTATION_CHANGE
+		 */
+		obj.WINDOW_ONORIENTATION_CHANGE = "window.orientationchange";
 
 		/**
 		 * Channel Constant for when the (browser) window is scrolled <br>
@@ -149,6 +192,16 @@
 		 * @name me.event#WINDOW_ONSCROLL
 		 */
 		obj.WINDOW_ONSCROLL = "window.onscroll";
+
+		/**
+		 * Channel Constant for when the viewport position is updated <br>
+		 * Data passed : {me.Vector2d} viewport position vector <br>
+		 * @public
+		 * @constant
+		 * @type String
+		 * @name me.event#VIEWPORT_ONCHANGE
+		 */
+		obj.VIEWPORT_ONCHANGE = "viewport.onchange";
 
 		/**
 		 * Publish some data on a channel

@@ -149,8 +149,10 @@
 			if (this.addAsObject) {
 				// make sure we are visible upon reset
 				this.visible = true;
+				// Always use screen coordinates
+				this.floating = true;
 				// update the screen size if added as an object
-				this.set(me.game.viewport.pos, me.game.viewport.width, me.game.viewport.height);
+				this.set(new me.Vector2d(), me.game.viewport.width, me.game.viewport.height);
 				// add ourself !
 				me.game.add(this, this.z);
 			}
@@ -176,6 +178,7 @@
 		 * @name update
 		 * @memberOf me.ScreenObject
 		 * @function
+         * @param {Number} time current timestamp
 		 * @example
 		 * // define a Title Screen
 		 * var TitleScreen = me.ScreenObject.extend(
@@ -191,7 +194,7 @@
 		 *     // ...
 		 * });
 		 */
-		update : function() {
+		update : function(time) {
 			return false;
 		},
 
@@ -199,21 +202,20 @@
 		 * frame update function function
 		 * @ignore
 		 */
-		onUpdateFrame : function() {
+		onUpdateFrame : function(time) {
 			// handle frame skipping if required
-			if (!(++this.frame%this.frameRate)) {
+			if ((++this.frame%this.frameRate)===0) {
 				// reset the frame counter
 				this.frame = 0;
 				
 				// update the timer
-				me.timer.update();
+				me.timer.update(time);
 
 				// update all games object
-				me.game.update();
-
-				// draw the game objects
-				me.game.draw();
+				me.game.update(time);
 			}
+			// draw the game objects
+			me.game.draw();
 		},
 
 		/**
@@ -393,8 +395,8 @@
 		 * this is only called when using requestAnimFrame stuff
 		 * @ignore
 		 */
-		function _renderFrame() {
-			_activeUpdateFrame();
+		function _renderFrame(time) {
+			_activeUpdateFrame(time);
 			if (_animFrameId !== -1) {
 		           _animFrameId = window.requestAnimationFrame(_renderFrame);
 		    }
@@ -424,9 +426,10 @@
 					// persistent or not, make sure we remove it
 					// from the current object list
 					me.game.remove.call(me.game, _screenObject[_state].screen, true);
+				} else {
+					// just notify the object
+					_screenObject[_state].screen.destroy();
 				}
-				// notify the object
-				_screenObject[_state].screen.destroy();
 			}
 
 			if (_screenObject[state])

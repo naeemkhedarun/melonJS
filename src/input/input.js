@@ -14,7 +14,7 @@
 	 */
 	 
 	 /**
-	  * Event normalized X coordinates whithin the game canvas itself<br>
+	  * Event normalized X coordinate within the game canvas itself<br>
 	  * <img src="images/event_coord.png"/>
 	  * @memberof! external:Event#
 	  * @name external:Event#gameX
@@ -22,10 +22,38 @@
 	  */
 	  
 	 /**
-	  * Event normalized Y coordinates whithin the game canvas itself<br>
+	  * Event normalized Y coordinate within the game canvas itself<br>
 	  * <img src="images/event_coord.png"/>
 	  * @memberof! external:Event#
 	  * @name external:Event#gameY
+	  * @type {Number}
+	  */
+
+	 /**
+	  * Event X coordinate relative to the viewport<br>
+	  * @memberof! external:Event#
+	  * @name external:Event#gameScreenX
+	  * @type {Number}
+	  */
+
+	 /**
+	  * Event Y coordinate relative to the viewport<br>
+	  * @memberof! external:Event#
+	  * @name external:Event#gameScreenY
+	  * @type {Number}
+	  */
+
+	 /**
+	  * Event X coordinate relative to the map<br>
+	  * @memberof! external:Event#
+	  * @name external:Event#gameWorldX
+	  * @type {Number}
+	  */
+
+	 /**
+	  * Event Y coordinate relative to the map<br>
+	  * @memberof! external:Event#
+	  * @name external:Event#gameWorldY
 	  * @type {Number}
 	  */
 	  
@@ -71,7 +99,6 @@
 		// some usefull flags
 		var keyboardInitialized = false;
 		var pointerInitialized = false;
-		var accelInitialized = false;
 		
 		// to keep track of the supported wheel event
 		var wheeltype = 'mousewheel';
@@ -147,7 +174,7 @@
 					registerEventListener(activeEventList, onPointerEvent);
 				} else {
                     // Regular `touch****` events for iOS/Android devices
-				    if (me.sys.touch) {
+				    if (me.device.touch) {
 						activeEventList = touchEventList;
 						registerEventListener(activeEventList, onPointerEvent);
 				    } else {
@@ -271,7 +298,7 @@
 
 			if (handlers) {
 				// get the current screen to world offset 
-				var offset = me.game.viewport.screenToWorld(0,0);
+				var offset = me.game.viewport.localToWorld(0,0);
 				for(var t=0, l=obj.changedTouches.length; t<l; t++) {
 					// Do not fire older events
 					if (typeof(e.timeStamp) !== "undefined") {
@@ -422,43 +449,11 @@
 			return true;
 		}
 
-		/**
-		 * event management (Accelerometer)
-		 * http://www.mobilexweb.com/samples/ball.html
-		 * http://www.mobilexweb.com/blog/safari-ios-accelerometer-websockets-html5
-		 * @ignore		
-		 */
-		function onDeviceMotion(e) {
-		    if (e.reading) {
-                // For Windows 8 devices
-		        obj.accel.x = e.reading.accelerationX;
-		        obj.accel.y = e.reading.accelerationY;
-		        obj.accel.z = e.reading.accelerationZ;
-		    } else {
-		        // Accelerometer information
-		        obj.accel = e.accelerationIncludingGravity;
-		    }
-		}
-
 		/*---------------------------------------------
 			
 			PUBLIC STUFF
 				
 		  ---------------------------------------------*/
-		
-		/**
-		 * Accelerometer information<br>
-		 * properties : x, y, z
-		 * @public
-		 * @enum {number}
-		 * @name accel
-		 * @memberOf me.input
-		 */
-		obj.accel = {
-			x: 0, 
-			y: 0, 
-			z: 0
-		};
 		
 		/**
 		 * Mouse information<br>
@@ -722,7 +717,7 @@
 		 */
 		obj.globalToLocal = function (x, y) {
 			var offset = obj.offset;
-			var pixelRatio = me.video.getDevicePixelRatio();
+			var pixelRatio = me.device.getPixelRatio();
 			x -= offset.left;
 			y -= offset.top;
 			var scale = me.sys.scale;
@@ -836,7 +831,7 @@
 		    enablePointerEvent();
 
 		    // convert mouse events to iOS/PointerEvent equivalent
-		    if ((mouseEventList.indexOf(eventType) !== -1) && (me.sys.touch || window.navigator.pointerEnabled)) {
+		    if ((mouseEventList.indexOf(eventType) !== -1) && (me.device.touch || window.navigator.pointerEnabled)) {
 		        eventType = activeEventList[mouseEventList.indexOf(eventType)];
 		    }
 			// >>>TODO<<< change iOS touch event to their PointerEvent equivalent & vice-versa
@@ -876,7 +871,7 @@
 		 */
 		obj.releasePointerEvent = function(eventType, rect) {
 			// convert mouse events to iOS/MSPointer equivalent
-		    if ((mouseEventList.indexOf(eventType) !== -1) && (me.sys.touch || window.navigator.pointerEnabled)) {
+		    if ((mouseEventList.indexOf(eventType) !== -1) && (me.device.touch || window.navigator.pointerEnabled)) {
 		        eventType = activeEventList[mouseEventList.indexOf(eventType)];
 		    }
 			// >>>TODO<<< change iOS touch event to their PointerEvent equivalent & vice-versa
@@ -903,59 +898,21 @@
 		};
 
 		/**
-		 * watch Accelerator event 
-		 * @name watchAccelerometer
-		 * @memberOf me.input
-		 * @public
-		 * @function
-		 * @return {boolean} false if not supported by the device
-		 */
-		obj.watchAccelerometer = function () {
-		    if (me.sys.hasAccelerometer) {
-		        if (!accelInitialized) {
-		            if (typeof Windows === 'undefined') {
-		                // add a listener for the devicemotion event
-		                window.addEventListener('devicemotion', onDeviceMotion, false);
-		            } else {
-		                // On Windows 8 Device
-		                var accelerometer = Windows.Devices.Sensors.Accelerometer.getDefault();
-		                if (accelerometer) {
-		                    // Capture event at regular intervals
-		                    var minInterval = accelerometer.minimumReportInterval;
-		                    var Interval = minInterval >= 16 ? minInterval : 25;
-		                    accelerometer.reportInterval = Interval;
-
-		                    accelerometer.addEventListener('readingchanged', onDeviceMotion, false);
-		                }
-		            }
-		            accelInitialized = true;
-		        }
-		        return true;
-		    }
-		    return false;
-		};
-		
-		/**
-		 * unwatch Accelerometor event 
-		 * @name unwatchAccelerometer
+		 * Will translate global (frequently used) pointer events
+         * which should be catched at root level, into minipubsub system events
+		 * @name translatePointerEvents
 		 * @memberOf me.input
 		 * @public
 		 * @function
 		 */
-		obj.unwatchAccelerometer = function() {
-		    if (accelInitialized) {
-		        if (typeof Windows === 'undefined') {
-		            // add a listener for the mouse
-		            window.removeEventListener('devicemotion', onDeviceMotion, false);
-		        } else {
-                    // On Windows 8 Devices
-		            var accelerometer = Windows.Device.Sensors.Accelerometer.getDefault();
-
-		            accelerometer.removeEventListener('readingchanged', onDeviceMotion, false);
-		        }
-		        accelInitialized = false;
-		    }
-		};
+        obj.translatePointerEvents = function () {
+            // listen to mouse move (and touch move) events on the viewport
+            // and convert them to a system event by default
+            obj.registerPointerEvent('mousemove', me.game.viewport, function (e) {
+                me.event.publish(me.event.MOUSEMOVE, [e]);
+                return false;
+            });
+        };
 
 	    // return our object
 		return obj;

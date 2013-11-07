@@ -39,7 +39,7 @@ game.MoleEntity = me.AnimationSheet.extend(
 	 * callback for mouse click
 	 */
 	onMouseDown : function() {
-		if (this.isOut == true) {
+		if (this.isOut === true) {
 			this.isOut = false;
 			// set touch animation
 			this.setCurrentAnimation("touch", this.hide.bind(this));
@@ -47,6 +47,18 @@ game.MoleEntity = me.AnimationSheet.extend(
 			this.flicker(20);
 			// play ow FX
 			me.audio.play("ow");
+
+			// add some points
+			game.data.score += 100;
+
+			if (game.data.hiscore < game.data.score) {
+				// i could save direclty to me.save
+				// but that allows me to only have one
+				// simple HUD Score Object
+				game.data.hiscore = game.data.score;
+				// save to local storage
+				me.save.hiscore = game.data.hiscore;
+			}
 
 			// stop propagating the event
 			return false;
@@ -102,22 +114,30 @@ game.MoleEntity = me.AnimationSheet.extend(
 	/**
 	 * update the mole
 	 */
-	update : function ()
+	update : function (time)
 	{
 		if (this.isVisible) {
 			// call the parent function to manage animation
-			this.parent();
+			this.parent(time);
 		
 			// hide the mode after 1/2 sec
 			if (this.isOut===true) {
-				if ((me.timer.getTime() - this.timer) > 500){
+				if ((time - this.timer) > 500){
 					this.isOut = false;
 					// set default one
 					this.setCurrentAnimation("laugh");
 					this.hide();
 					// play laugh FX
 					//me.audio.play("laugh");
+					
+					// decrease score by 25 pts
+					game.data.score -= 25;
+					if (game.data.score < 0) {
+						game.data.score = 0;
+						
+					}
 				}
+				return true;
 			}
 		}
 		return this.isVisible;
@@ -167,10 +187,10 @@ game.MoleManager = me.ObjectEntity.extend(
 	/*
 	 * update function
 	 */
-	update : function ()
+	update : function (time)
 	{
 		// every 1/2 seconds display moles randomly
-		if ((me.timer.getTime() - this.timer) > 500) {
+		if ((time - this.timer) > 500) {
 
 			for (var i = 0; i < 9; i+=3) {
 				var hole = Number.prototype.random(0,2) + i ;
@@ -179,7 +199,7 @@ game.MoleManager = me.ObjectEntity.extend(
 				}
 			
 			}
-			this.timer = me.timer.getTime();
+			this.timer = time;
 		}
  		return false;
 	}

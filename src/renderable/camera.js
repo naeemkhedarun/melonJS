@@ -123,28 +123,26 @@
 
 		/** @ignore */
 		_followH : function(target) {
+			var _x = this.pos.x;
 			if ((target.x - this.pos.x) > (this._deadwidth)) {
 				this.pos.x = ~~MIN((target.x) - (this._deadwidth), this._limitwidth);
-				return true;
 			}
 			else if ((target.x - this.pos.x) < (this.deadzone.x)) {
 				this.pos.x = ~~MAX((target.x) - this.deadzone.x, 0);
-				return true;
 			}
-			return false;
+			return (_x !== this.pos.x);
 		},
 
 		/** @ignore */
 		_followV : function(target) {
+			var _y = this.pos.y;
 			if ((target.y - this.pos.y) > (this._deadheight)) {
 				this.pos.y = ~~MIN((target.y) - (this._deadheight),	this._limitheight);
-				return true;
 			}
 			else if ((target.y - this.pos.y) < (this.deadzone.y)) {
 				this.pos.y = ~~MAX((target.y) - this.deadzone.y, 0);
-				return true;
 			}
-			return false;
+			return (_y !== this.pos.y);
 		},
 
 		// -- public function ---
@@ -222,7 +220,7 @@
 			else
 				throw "melonJS: invalid target for viewport.follow";
 			// if axis is null, camera is moved on target center
-			this.follow_axis = axis || this.AXIS.BOTH;
+			this.follow_axis = (typeof(axis) === "undefined" ? this.AXIS.BOTH : axis);
 			
 			// force a camera update
 			this.update(true);
@@ -242,11 +240,15 @@
 			
 			this.pos.x = newx.clamp(0,this._limitwidth);
 			this.pos.y = newy.clamp(0,this._limitheight);
+
+			//publish the corresponding message
+			me.event.publish(me.event.VIEWPORT_ONCHANGE, [this.pos]);
 		},
 
 		/** @ignore */
 		update : function(updateTarget) {
-
+			var updated = false;
+			
 			if (this.target && updateTarget) {
 				switch (this.follow_axis) {
 				case this.AXIS.NONE:
@@ -254,16 +256,16 @@
 					break;
 
 				case this.AXIS.HORIZONTAL:
-					updateTarget = this._followH(this.target);
+					updated = this._followH(this.target);
 					break;
 
 				case this.AXIS.VERTICAL:
-					updateTarget = this._followV(this.target);
+					updated = this._followV(this.target);
 					break;
 
 				case this.AXIS.BOTH:
-					updateTarget = this._followH(this.target);
-					updateTarget = this._followV(this.target) || updateTarget;
+					updated = this._followH(this.target);
+					updated = this._followV(this.target) || updated;
 					break;
 
 				default:
@@ -271,7 +273,7 @@
 				}
 			}
 
-			if (this.shaking) {
+			if (this.shaking===true) {
 				var delta = me.timer.getTime() - this._shake.start;
 				if (delta >= this._shake.duration) {
 					this.shaking = false;
@@ -291,18 +293,20 @@
 					}
 				}
 				// updated!
-				updateTarget = true;
+				updated = true;
+			}
+
+			if (updated === true) {
+				//publish the corresponding message
+				me.event.publish(me.event.VIEWPORT_ONCHANGE, [this.pos]);
 			}
 
 			// check for fade/flash effect
 			if ((this._fadeIn.tween!=null) || (this._fadeOut.tween!=null)) {
-				updateTarget = true;
+				updated = true;
 			}
 
-			// return same value that the one given
-			// so that we only force it to true
-			// if we used any effect (e.g. shake, fading, etc...)
-			return updateTarget;
+			return updated;
 		},
 
 		/**
@@ -417,28 +421,28 @@
 		},
 
 		/**
-		 * convert the given screen coordinates into world coordinates
-		 * @name screenToWorld
+		 * convert the given "local" (screen) coordinates into world coordinates
+		 * @name localToWorld
 		 * @memberOf me.Viewport
 		 * @function
 		 * @param {Number} x
 		 * @param {Number} y
 		 * @return {me.Vector2d}
 		 */
-		screenToWorld : function(x, y) {
+		localToWorld : function(x, y) {
 			return (new me.Vector2d(x,y)).add(this.pos).sub(me.game.currentLevel.pos);
 		},
 		
 		/**
-		 * convert the given world coordinates into screen coordinates
-		 * @name worldToScreen
+		 * convert the given world coordinates into "local" (screen) coordinates
+		 * @name worldToLocal
 		 * @memberOf me.Viewport
 		 * @function
 		 * @param {Number} x
 		 * @param {Number} y
 		 * @return {me.Vector2d}
 		 */
-		worldToScreen : function(x, y) {
+		worldToLocal : function(x, y) {
 			return (new me.Vector2d(x,y)).sub(this.pos).add(me.game.currentLevel.pos);
 		},
 		

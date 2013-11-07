@@ -2,6 +2,8 @@
 module.exports = function(grunt) {
     var sourceFiles = [
         'src/core.js',
+        'src/system/device.js',
+        'src/system/timer.js',
         'src/math/vector.js',
         'src/math/shape.js',
         'src/debug/debug.js',
@@ -20,7 +22,7 @@ module.exports = function(grunt) {
         'src/video/video.js',
         'src/input/input.js',
         'src/utils/utils.js',
-        'src/utils/stat.js',
+        'src/system/save.js',
         'src/level/TMXConstants.js',
         'src/level/TMXUtils.js',
         'src/level/TMXObjectGroup.js',
@@ -33,7 +35,9 @@ module.exports = function(grunt) {
         'src/vendors/tween.js',
         'src/vendors/minpubsub.src.js',
         'src/entity/collision.js',
-        'src/plugin/plugin.js'
+        'src/plugin/plugin.js',
+        'src/entity/draggable.js',
+        'src/entity/droptarget.js'
     ];
 
     // Project configuration.

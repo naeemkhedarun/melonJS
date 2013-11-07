@@ -19,15 +19,13 @@
 	 me.ColorLayer = me.Renderable.extend({
 		// constructor
 		init: function(name, color, z) {
+			// parent constructor
+			this.parent(new me.Vector2d(0, 0), Infinity, Infinity);
+            
+			// apply given parameters
 			this.name = name;
 			this.color = me.utils.HexToRGB(color);
-			// for displaying order
 			this.z = z;
-			
-			this.opacity = 1.0;
-			
-			this.parent(new me.Vector2d(0, 0), Infinity, Infinity);
-
 		},
 
 		/**
@@ -37,30 +35,6 @@
 		 */
 		reset : function() {
 			// nothing to do here
-		},
-
-		/**
-		 * get the layer alpha channel value<br>
-		 * @name getOpacity
-		 * @memberOf me.ColorLayer
-		 * @function
-		 * @return current opacity value between 0 and 1
-		 */
-		getOpacity : function() {
-			return this.opacity;
-		},
-
-		/**
-		 * set the layer alpha channel value<br>
-		 * @name setOpacity
-		 * @memberOf me.ColorLayer
-		 * @function
-		 * @param {Number} alpha opacity value between 0 and 1
-		 */
-		setOpacity : function(alpha) {
-			if (typeof(alpha) === "number") {
-				this.opacity = alpha.clamp(0.0, 1.0);
-			}
 		},
 
 		/**
@@ -79,7 +53,7 @@
 		draw : function(context, rect) {
 			// set layer opacity
 			var _alpha = context.globalAlpha;
-			context.globalAlpha = this.opacity;
+			context.globalAlpha *= this.getOpacity();
 			
 			// set layer color
 			context.fillStyle = this.color;
@@ -132,7 +106,7 @@
 		 * @type me.Vector2d
 		 * @name me.ImageLayer#ratio
 		 */
-		ratio: new me.Vector2d(1.0, 1.0),
+		//ratio: new me.Vector2d(1.0, 1.0),
 	 
 		/**
 		 * constructor
@@ -151,12 +125,20 @@
 			
 			this.imagewidth = this.image.width;
 			this.imageheight = this.image.height;
+            
+			// a cached reference to the viewport
+			var viewport = me.game.viewport;
+            
+            // set layer width & height 
+			width  = width ? Math.min(viewport.width, width)   : viewport.width;
+			height = height? Math.min(viewport.height, height) : viewport.height;
+			this.parent(new me.Vector2d(0, 0), width, height);
 			
 			// displaying order
 			this.z = z;
 			
 			// default ratio for parallax
-			this.ratio.set(1.0, 1.0);
+			this.ratio = new me.Vector2d(1.0, 1.0);
 
 			if (ratio) {
 				// little hack for backward compatiblity
@@ -166,22 +148,9 @@
 					this.ratio.setV(ratio);
 				}
 			}
-
-			
-			// a cached reference to the viewport
-			this.viewport = me.game.viewport;
 			
 			// last position of the viewport
-			this.lastpos = this.viewport.pos.clone();
-			
-			
-			// set layer width & height 
-			width  = width ? Math.min(this.viewport.width, width)   : this.viewport.width;
-			height = height? Math.min(this.viewport.height, height) : this.viewport.height;
-			this.parent(new me.Vector2d(0, 0), width, height);
-			
-			// default opacity
-			this.opacity = 1.0;
+			this.lastpos = viewport.pos.clone();
 			
 			// Image Layer is considered as a floating object
 			this.floating = true;
@@ -221,6 +190,9 @@
 			
 			// default origin position
 			this.anchorPoint.set(0, 0);
+
+			// register to the viewport change notification
+			this.handle = me.event.subscribe(me.event.VIEWPORT_ONCHANGE, this.updateLayer.bind(this));
 			
 		},
 		
@@ -230,63 +202,47 @@
 		 * @function
 		 */
 		reset : function() {
+			// cancel the event subscription
+			if (this.handle)  {
+				me.event.unsubscribe(this.handle);
+				this.handle = null;
+			}
 			// clear all allocated objects
 			this.image = null;
 			this.lastpos = null;
-			this.viewport = null;
-		},
-
-		/**
-		 * get the layer alpha channel value<br>
-		 * @name getOpacity
-		 * @memberOf me.ImageLayer
-		 * @function
-		 * @return current opacity value between 0 and 1
-		 */
-		getOpacity : function() {
-			return this.opacity;
-		},
-
-		/**
-		 * set the layer alpha channel value<br>
-		 * @name setOpacity
-		 * @memberOf me.ImageLayer
-		 * @function
-		 * @param {Number} alpha opacity value between 0 and 1
-		 */
-		setOpacity : function(alpha) {
-			if (typeof(alpha) === "number") {
-				this.opacity = alpha.clamp(0.0, 1.0);
-			}
 		},
 		
+		/**
+		 * updateLayer function
+		 * @ignore
+		 * @function
+		 */
+		updateLayer : function(vpos) {
+			if (0 === this.ratio.x && 0 === this.ratio.y) {
+				// static image
+				return;
+			} else {
+				// parallax / scrolling image
+				this.pos.x += ((vpos.x - this.lastpos.x) * this.ratio.x) % this.imagewidth;
+				this.pos.x = (this.imagewidth + this.pos.x) % this.imagewidth;
+				this.pos.y += ((vpos.y - this.lastpos.y) * this.ratio.y) % this.imageheight;
+				this.pos.y = (this.imageheight + this.pos.y) % this.imageheight;
+				this.lastpos.setV(vpos);
+			}
+		},
+
 		/**
 		 * update function
 		 * @ignore
 		 * @function
 		 */
 		update : function() {
-			if (0 === this.ratio.x && 0 === this.ratio.y) {
-				// static image
-				return false;
-			}
-			else {
-				// reference to the viewport
-				var vpos = this.viewport.pos;
-				// parallax / scrolling image
-				if (!this.lastpos.equals(vpos)) {
-					// viewport changed
-					this.pos.x += ((vpos.x - this.lastpos.x) * this.ratio.x) % this.imagewidth;
-					this.pos.x = (this.imagewidth + this.pos.x) % this.imagewidth;
-					this.pos.y += ((vpos.y - this.lastpos.y) * this.ratio.y) % this.imageheight;
-					this.pos.y = (this.imageheight + this.pos.y) % this.imageheight;
-					this.lastpos.setV(vpos);
-					return true;
-				}
-				return false;
-			}
-		},
-		
+			// this one will be repainted anyway
+			// if the viewport change
+			// note : this will not work later if
+			// we re-introduce a dirty rect algorithm ?
+			return false;
+		},		
 
 		/**
 		 * draw the image layer
@@ -305,7 +261,7 @@
 			}
 			
 			// set the layer alpha value
-			context.globalAlpha = this.opacity;
+			context.globalAlpha *= this.getOpacity();
 			
 			var sw, sh;
 
@@ -363,7 +319,12 @@
 			
 			// restore context state
 			context.restore();
-		}
+		},
+
+		// called when the layer is destroyed
+		destroy : function() {
+			this.reset();
+		},
 	});	
 	
 	
@@ -416,7 +377,9 @@
 		
 		/** @ignore */
 		init: function(tilewidth, tileheight, orientation, tilesets, zOrder) {
-
+			// parent constructor
+			this.parent(new me.Vector2d(0, 0), 0, 0);
+            
 			// tile width & height
 			this.tilewidth  = tilewidth;
 			this.tileheight = tileheight;
@@ -424,9 +387,6 @@
 			// layer orientation
 			this.orientation = orientation;
 			
-			// for displaying order
-			this.z = zOrder;
-
 			/**
 			 * The Layer corresponding Tilesets
 			 * @public
@@ -438,7 +398,8 @@
 			// the default tileset
 			this.tileset = this.tilesets?this.tilesets.getTilesetByIndex(0):null;
 			
-			this.parent(new me.Vector2d(0, 0), 0, 0);
+			// for displaying order
+			this.z = zOrder;
 		},
 		
 		/** @ignore */
@@ -447,10 +408,12 @@
 			// additional TMX flags
 			this.name = me.mapReader.TMXParser.getStringAttribute(layer, me.TMX_TAG_NAME);
 			this.visible = (me.mapReader.TMXParser.getIntAttribute(layer, me.TMX_TAG_VISIBLE, 1) === 1);
-			this.opacity = me.mapReader.TMXParser.getFloatAttribute(layer, me.TMX_TAG_OPACITY, 1.0).clamp(0.0, 1.0);
 			this.cols = me.mapReader.TMXParser.getIntAttribute(layer, me.TMX_TAG_WIDTH);
 			this.rows = me.mapReader.TMXParser.getIntAttribute(layer, me.TMX_TAG_HEIGHT);
-			
+            
+			// layer opacity
+			this.setOpacity(me.mapReader.TMXParser.getFloatAttribute(layer, me.TMX_TAG_OPACITY, 1.0));
+             
 			// layer "real" size
 			this.width = this.cols * this.tilewidth;
 			this.height = this.rows * this.tileheight;
@@ -475,9 +438,6 @@
 			if (this.preRender === true) {
 				this.layerCanvas = me.video.createCanvas(this.cols * this.tilewidth, this.rows * this.tileheight);
 				this.layerSurface = me.video.getContext2d(this.layerCanvas);
-
-				// set alpha value for this layer
-				this.layerSurface.globalAlpha = this.opacity;
 			}	
 
 		},
@@ -487,9 +447,11 @@
 			// additional TMX flags
 			this.name = layer[me.TMX_TAG_NAME];
 			this.visible = layer[me.TMX_TAG_VISIBLE];
-			this.opacity = parseFloat(layer[me.TMX_TAG_OPACITY]).clamp(0.0, 1.0);
 			this.cols = parseInt(layer[me.TMX_TAG_WIDTH], 10);
 			this.rows = parseInt(layer[me.TMX_TAG_HEIGHT], 10);
+            
+			// layer opacity
+			this.setOpacity(parseFloat(layer[me.TMX_TAG_OPACITY]));
 			
 			// layer "real" size
 			this.width = this.cols * this.tilewidth;
@@ -515,9 +477,6 @@
 			if (this.preRender === true) {
 				this.layerCanvas = me.video.createCanvas(this.cols * this.tilewidth, this.rows * this.tileheight);
 				this.layerSurface = me.video.getContext2d(this.layerCanvas);
-				
-				// set alpha value for this layer
-				this.layerSurface.globalAlpha = this.opacity;
 			}	
 
 		},
@@ -604,15 +563,22 @@
 		 * @param {Integer} x x coordinate in tile 
 		 * @param {Integer} y y coordinate in tile
 		 * @param {Integer} tileId tileId
+		 * @return {me.Tile} the corresponding newly created tile object
 		 */
 		setTile : function(x, y, tileId) {
 			// Remove old tile from collision spacial grid
-			me.collision.remove(this.layerData[x][y]);
+			if (this.layerData[x][y] !== null) {
+				me.collision.remove(this.layerData[x][y]);
+			}
 
 			// Get collisionMask property for new tile
 			var tile = new me.Tile(x, y, this.tilewidth, this.tileheight, tileId);
-			var tileset = this.tilesets.getTilesetByGid(tileId);
-			var props = tileset.getTileProperties(tileId);
+			if (!this.tileset.contains(tile.tileId)) {
+				tile.tileset = this.tileset = this.tilesets.getTilesetByGid(tile.tileId);
+			} else {
+				tile.tileset = this.tileset;
+			}
+			var props = tile.tileset.getTileProperties(tileId);
 			if (props.isCollidable) {
 				tile.collisionMask = (
 					typeof(props.collisionmask) !== "undefined" ?
@@ -625,6 +591,8 @@
 
 			// Update layer data with new tile
 			this.layerData[x][y] = tile;
+
+			return tile;
 		},
 		
 		/**
@@ -648,36 +616,7 @@
 			}
 		},
 		
-		/**
-		 * get the layer alpha channel value
-		 * @name getOpacity
-		 * @memberOf me.TMXLayer
-		 * @public
-		 * @function
-		 * @return {Number} current opacity value between 0 and 1
-		 */
-		getOpacity : function() {
-			return this.opacity;
-		},
-
-		/**
-		 * set the layer alpha channel value
-		 * @name setOpacity
-		 * @memberOf me.TMXLayer
-		 * @public
-		 * @function
-		 * @param {Number} alpha opacity value between 0 and 1
-		 */
-		setOpacity : function(alpha) {
-			if (typeof(alpha) === "number") {
-				this.opacity = alpha.clamp(0.0, 1.0);
-				// if pre-rendering is used, update opacity on the hidden canvas context
-				if (this.preRender) {
-					this.layerSurface.globalAlpha = this.opacity;
-				}
-			}
-		},
-
+		
 		/**
 		 * a dummy update function
 		 * @ignore
@@ -697,7 +636,9 @@
 			
 				var width = Math.min(rect.width, this.width);
 				var height = Math.min(rect.height, this.height);
-			
+                
+				this.layerSurface.globalAlpha = context.globalAlpha * this.getOpacity();
+            
 				// draw using the cached canvas
 				context.drawImage(this.layerCanvas, 
 								  rect.pos.x, //sx
@@ -711,7 +652,7 @@
 			else {
 				// set the layer alpha value
 				var _alpha = context.globalAlpha;
-				context.globalAlpha = this.opacity;
+				context.globalAlpha *= this.getOpacity();
 
 				// draw the layer
 				this.renderer.drawTileLayer(context, this, rect);

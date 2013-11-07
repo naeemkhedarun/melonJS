@@ -57,16 +57,6 @@
 		 * @ignore
 		 */
 		_sourceAngle: 0,
-
-		/**
-		 * Define the sprite opacity<br>
-		 * @see me.SpriteObject#setOpacity
-		 * @see me.SpriteObject#getOpacity 
-		 * @public
-		 * @type Number
-		 * @name me.SpriteObject#alpha
-		 */
-		alpha: 1.0,
 		
 		// image reference
 		image : null,
@@ -101,10 +91,7 @@
 			this.scaleFlag = false;
 
 			// set the default sprite index & offset
-			this.offset = new me.Vector2d(0, 0);
-
-			// ensure it's fully opaque by default
-			this.alpha = 1.0;			
+			this.offset = new me.Vector2d(0, 0);		
 			
 			// make it visible by default
 			this.visible = true;
@@ -224,29 +211,6 @@
 			}
 		},
 
-		/**
-		 * get the sprite alpha channel value<br>
-		 * @name getOpacity
-		 * @memberOf me.SpriteObject
-		 * @function
-		 * @return {Number} current opacity value between 0 and 1
-		 */
-		getOpacity : function() {
-			return this.alpha;
-		},
-		
-		/**
-		 * set the sprite alpha channel value<br>
-		 * @name setOpacity
-		 * @memberOf me.SpriteObject
-		 * @function
-		 * @param {alpha} alpha opacity value between 0 and 1
-		 */
-		setOpacity : function(alpha) {
-			if (typeof (alpha) === "number") {
-				this.alpha = alpha.clamp(0.0,1.0);
-			}
-		},
 
 		/**
 		 * sprite update<br>
@@ -258,7 +222,7 @@
 		 * @protected
 		 * @return false
 		 **/
-		update : function() {
+		update : function(time) {
 			//update the "flickering" state if necessary
 			if (this.flickering) {
 				this.flickerTimer -= me.timer.tick;
@@ -294,8 +258,8 @@
 			context.save();
 			
 			// sprite alpha value
-			context.globalAlpha = this.alpha;
-
+			context.globalAlpha *= this.getOpacity();
+            
 			// clamp position vector to pixel grid
 			var xpos = ~~this.pos.x, ypos = ~~this.pos.y;
 
@@ -403,7 +367,7 @@
 		/** @ignore */
 		init : function(x, y, image, spritewidth, spriteheight, spacing, margin, atlas, atlasIndices) {
 			// hold all defined animation
-			this.anim = [];
+			this.anim = {};
 
 			// a flag to reset animation
 			this.resetAnim = null;
@@ -622,10 +586,11 @@
 		 * @memberOf me.AnimationSheet
 		 * @function
 		 * @protected
+         * @param {Number} time current timestamp
 		 */
-		update : function() {
+		update : function(time) {
 			// update animation if necessary
-			if (!this.animationpause && (me.timer.getTime() >= this.current.nextFrame)) {
+			if (!this.animationpause && (time >= this.current.nextFrame)) {
 				this.setAnimationFrame(++this.current.idx);
 				
 
@@ -639,17 +604,17 @@
 					else if (typeof this.resetAnim === "function" && this.resetAnim() === false) {
 						this.current.idx = this.current.length - 1;
 						this.setAnimationFrame(this.current.idx);
-						this.parent();
+						this.parent(time);
 						return false;
 					}
 				}
 				
 				// set next frame timestamp
-				this.current.nextFrame = me.timer.getTime() + this.current.animationspeed;
+				this.current.nextFrame = time + this.current.animationspeed;
 
-				return this.parent() || true;
+				return this.parent(time) || true;
 			}
-			return this.parent();
+			return this.parent(time);
 		}
 	});
 

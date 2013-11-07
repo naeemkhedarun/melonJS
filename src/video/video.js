@@ -8,134 +8,6 @@
 (function($) {
 
 	/**
-	 * a Timer object to manage time function (FPS, Game Tick, Time...)<p>
-	 * There is no constructor function for me.timer
-	 * @namespace me.timer
-	 * @memberOf me
-	 */
-	me.timer = (function() {
-		// hold public stuff in our api
-		var api = {};
-
-		/*---------------------------------------------
-			
-			PRIVATE STUFF
-				
-			---------------------------------------------*/
-
-		//hold element to display fps
-		var framecount = 0;
-		var framedelta = 0;
-
-		/* fps count stuff */
-		var last = 0;
-		var now = 0;
-		var delta = 0;
-		var step = Math.ceil(1000 / me.sys.fps); // ROUND IT ?
-		// define some step with some margin
-		var minstep = (1000 / me.sys.fps) * 1.25; // IS IT NECESSARY?
-
-
-		/*---------------------------------------------
-			
-			PUBLIC STUFF
-				
-			---------------------------------------------*/
-
-		/**
-		 * last game tick value
-		 * @public
-		 * @type Int
-		 * @name tick
-		 * @memberOf me.timer
-		 */
-		api.tick = 1.0;
-
-		/**
-		 * last measured fps rate
-		 * @public
-		 * @type Int
-		 * @name fps
-		 * @memberOf me.timer
-		 */
-		api.fps = 0;
-		
-		/**
-		 * init the timer
-		 * @ignore
-		 */
-		api.init = function() {
-			// reset variables to initial state
-			api.reset();
-		};
-
-		/**
-		 * reset time (e.g. usefull in case of pause)
-		 * @name reset
-		 * @memberOf me.timer
-		 * @ignore
-		 * @function
-		 */
-		api.reset = function() {
-			// set to "now"
-			now = last = Date.now();
-			// reset delta counting variables
-			framedelta = 0;
-			framecount = 0;
-
-		};
-
-		/**
-		 * Return the current time, in milliseconds elapsed between midnight, January 1, 1970, and the current date and time.
-		 * @name getTime
-		 * @memberOf me.timer
-		 * @return {Number}
-		 * @function
-		 */
-		api.getTime = function() {
-			return now;
-		};
-
-
-		/**
-		 * compute the actual frame time and fps rate
-		 * @name computeFPS
-		 * @ignore
-		 * @memberOf me.timer
-		 * @function
-		 */
-		api.countFPS = function() {
-			framecount++;
-			framedelta += delta;
-			if (framecount % 10 === 0) {
-				this.fps = (~~((1000 * framecount) / framedelta)).clamp(0, me.sys.fps);
-				framedelta = 0;
-				framecount = 0;
-			}
-		};
-
-		/**
-		 * update game tick
-		 * should be called once a frame
-		 * @ignore
-		 */
-		api.update = function() {
-			last = now;
-			now = Date.now();
-
-			delta = (now - last);
-
-			// get the game tick
-			api.tick = (delta > minstep && me.sys.interpolation) ? delta / step	: 1;
-		};
-
-		// return our apiect
-		return api;
-
-	})();
-	/************************************************************************************/
-
-	/**
 	 * video functions
 	 * There is no constructor function for me.video
 	 * @namespace me.video
@@ -159,7 +31,6 @@
 		var game_height_zoom = 0;
 		var auto_scale = false;
 		var maintainAspectRatio = true;
-		var devicePixelRatio = null;
 
 		// max display size
 		var maxWidth = Infinity;
@@ -172,9 +43,7 @@
 		function getCanvasType() {
 			// cocoonJS specific canvas extension
 			if (navigator.isCocoonJS) {
-				if (!me.sys.dirtyRegion) {
 					return 'screencanvas';
-				}
 			}
 			return 'canvas';
 		}
@@ -231,10 +100,11 @@
 			
 			//add a channel for the onresize/onorientationchange event
 			window.addEventListener('resize', function (event) {me.event.publish(me.event.WINDOW_ONRESIZE, [event]);}, false);
-			window.addEventListener('orientationchange', function (event) {me.event.publish(me.event.WINDOW_ONRESIZE, [event]);}, false);
+			window.addEventListener('orientationchange', function (event) {me.event.publish(me.event.WINDOW_ONORIENTATION_CHANGE, [event]);}, false);
 			
 			// register to the channel
 			me.event.subscribe(me.event.WINDOW_ONRESIZE, me.video.onresize.bind(me.video));
+			me.event.subscribe(me.event.WINDOW_ONORIENTATION_CHANGE, me.video.onresize.bind(me.video));
 			
 			// create the main canvas
 			canvas = api.createCanvas(game_width_zoom, game_height_zoom, true);
@@ -258,9 +128,9 @@
 			context2D = api.getContext2d(canvas);
 			
 			// adjust CSS style for High-DPI devices
-			if (me.video.getDevicePixelRatio()>1) {
-				canvas.style.width = (canvas.width / me.video.getDevicePixelRatio()) + 'px';
-				canvas.style.height = (canvas.height / me.video.getDevicePixelRatio()) + 'px';
+			if (me.device.getPixelRatio()>1) {
+				canvas.style.width = (canvas.width / me.device.getPixelRatio()) + 'px';
+				canvas.style.height = (canvas.height / me.device.getPixelRatio()) + 'px';
 			}
 
 			// create the back buffer if we use double buffering
@@ -444,26 +314,6 @@
 			return backBufferContext2D;
 		};
 		
-		/**
-		 * return the device pixel ratio
-		 * @name getDevicePixelRatio
-		 * @memberOf me.video
-		 * @function
-		 */
-		api.getDevicePixelRatio = function() {
-			
-			if (devicePixelRatio===null) {
-				var _context = me.video.getScreenContext();
-				var _devicePixelRatio = window.devicePixelRatio || 1,
-					_backingStoreRatio = _context.webkitBackingStorePixelRatio ||
-										_context.mozBackingStorePixelRatio ||
-										_context.msBackingStorePixelRatio ||
-										_context.oBackingStorePixelRatio ||
-										_context.backingStorePixelRatio || 1;
-				devicePixelRatio = _devicePixelRatio / _backingStoreRatio;
-			}
-			return devicePixelRatio;
-		};
 		
 		/**
 		 * callback for window resize event
@@ -472,6 +322,15 @@
 		api.onresize = function(event){
 			// default (no scaling)
 			var scaleX = 1, scaleY = 1;
+            
+            // check for orientation information
+            if (typeof window.orientation !== 'undefined') {
+                me.device.orientation = window.orientation;
+            } else {
+                // is this actually not the best option since default "portrait"
+                // orientation might vary between for example an ipad and and android tab
+                me.device.orientation = (window.outerWidth > window.outerHeight) ? 90 : 0;
+            }
 			
 			if (auto_scale) {
 				// get the parent container max size
@@ -494,8 +353,8 @@
 				}
 				
 				// adjust scaling ratio based on the device pixel ratio
-				scaleX *= me.video.getDevicePixelRatio();
-				scaleY *= me.video.getDevicePixelRatio();
+				scaleX *= me.device.getPixelRatio();
+				scaleY *= me.device.getPixelRatio();
 			
 				// scale if required
 				if (scaleX!==1 || scaleY !==1) {
@@ -528,11 +387,12 @@
 			canvas.width = game_width_zoom = backBufferCanvas.width * scaleX;
 			canvas.height = game_height_zoom = backBufferCanvas.height * scaleY;
 			// adjust CSS style for High-DPI devices
-			if (me.video.getDevicePixelRatio()>1) {
-				canvas.style.width = (canvas.width / me.video.getDevicePixelRatio()) + 'px';
-				canvas.style.height = (canvas.height / me.video.getDevicePixelRatio()) + 'px';
+			if (me.device.getPixelRatio()>1) {
+				canvas.style.width = (canvas.width / me.device.getPixelRatio()) + 'px';
+				canvas.style.height = (canvas.height / me.device.getPixelRatio()) + 'px';
 			}
-			 
+			me.video.setImageSmoothing(context2D, me.sys.scalingInterpolation);
+
 			// make sure we have the correct relative canvas position cached
 			me.input.offset = me.video.getPos();
 

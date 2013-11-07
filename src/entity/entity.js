@@ -223,7 +223,7 @@
 			// Tile objects can be created with a GID attribute;
 			// The TMX parser will use it to create the image property.
 			var settings = arguments[3];
-			if (settings && settings.image) {
+			if (settings && settings.gid && settings.image) {
 				return new me.SpriteObject(settings.x, settings.y, settings.image);
 			}
 
@@ -650,11 +650,11 @@
             // some hack to get the collisionBox working in this branch
             // to be removed once the ticket #103 will be done
             if (this.shapes.length === 1) {
-                if (this.shapes[0].shapeType === "Rectangle") {
-                     this.collisionBox = this.shapes[0];
-                } else {
-                    this.collisionBox = this.shapes[0].getBounds();
-                }   
+                this.collisionBox = this.shapes[0].getBounds();
+                // collisionBox pos vector is a reference to this pos vector
+                this.collisionBox.pos = this.pos;
+                // offset position vector
+                this.pos.add(this.shapes[0].offset);
             }
 		},
          
@@ -1063,9 +1063,9 @@
 		},
 		
 		/** @ignore */
-		update : function() {
+		update : function(time) {
 			if (this.renderable) {
-				return this.renderable.update();
+				return this.renderable.update(time);
 			}
 			return false;
 		},

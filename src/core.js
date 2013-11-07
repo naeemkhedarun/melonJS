@@ -34,54 +34,6 @@ window.me = window.me || {};
 	 * @namespace
 	 */
 	me.sys = {
-		// Browser capabilities
-		/**
-		 * Browser User Agent (read-only)
-		 * @type Boolean
-		 * @memberOf me.sys
-		 */
-		ua : navigator.userAgent,
-		/**
-		 * Browser Audio capabilities (read-only) <br>
-		 * @type Boolean
-		 * @memberOf me.sys
-		 */
-		sound : false,
-		/**
-		 * Browser Local Storage capabilities (read-only) <br>
-		 * @type Boolean
-		 * @memberOf me.sys
-		 */
-		localStorage : (typeof($.localStorage) === 'object'),
-		/**
-		 * Browser accelerometer capabilities (read-only) <br>
-		 * @type Boolean
-		 * @memberOf me.sys
-		 */
-		hasAccelerometer : false,
-
-		/**
-		 * Browser Base64 decoding capability (read-only) <br>
-		 * @type Boolean
-		 * @memberOf me.sys
-		 */
-		nativeBase64 : (typeof($.atob) === 'function'),
-
-		/**
-		 * Touch capabilities <br>
-		 * @type Boolean
-		 * @memberOf me.sys
-		 */
-		touch : false,
-		
-		/**
-		 * equals to true if a mobile device (read-only) <br>
-		 * (Android | iPhone | iPad | iPod | BlackBerry | Windows Phone)
-		 * @type Boolean
-		 * @memberOf me.sys
-		 */
-		isMobile : false,
-
 
 		// Global settings
 		/**
@@ -122,15 +74,6 @@ window.me = window.me || {};
 		gravity : undefined,
 
 		/**
-		 * cache Image using a Canvas element, instead of directly using the Image Object<br>
-		 * using this, performances are lower on OSX desktop (others, including mobile untested)<br>
-		 * default value : false
-		 * @type Boolean
-		 * @memberOf me.sys
-		 */
-		cacheImage : false,
-
-		/**
 		 * Specify either to stop on audio loading error or not<br>
 		 * if me.debug.stopOnAudioLoad is true, melonJS will throw an exception and stop loading<br>
 		 * if me.debug.stopOnAudioLoad is false, melonJS will disable sounds and output a warning message in the console <br>
@@ -159,11 +102,11 @@ window.me = window.me || {};
 		/**
 		 * Specify whether to stop the game when losing focus or not<br>
 		 * The engine restarts on focus if this is enabled.
-		 * default value : true<br>
+		 * default value : false<br>
 		 * @type Boolean
 		 * @memberOf me.sys
 		 */
-		stopOnBlur : true,
+		stopOnBlur : false,
 
 		/**
 		 * Specify the rendering method for layers <br>
@@ -894,32 +837,15 @@ window.me = window.me || {};
 			return;
 		}
 
+		// check the device capabilites
+		me.device._check();
+
+		// initialize me.save
+		me.save._init();
+
 		// enable/disable the cache
 		me.loader.setNocache(document.location.href.match(/\?nocache/)||false);
 	
-		// detect audio capabilities
-		me.audio.detectCapabilities();
-		
-		// future proofing (MS) feature detection
-		navigator.pointerEnabled = navigator.pointerEnabled || navigator.msPointerEnabled;
-		navigator.maxTouchPoints = navigator.maxTouchPoints || navigator.msMaxTouchPoints || 0;
-		window.gesture = window.gesture || window.MSGesture;
-		
-		// detect touch capabilities
-		me.sys.touch = ('createTouch' in document) || ('ontouchstart' in $) || 
-		               (navigator.isCocoonJS) || (navigator.maxTouchPoints > 0);
-		
-		// detect platform
-		me.sys.isMobile = me.sys.ua.match(/Android|iPhone|iPad|iPod|BlackBerry|Windows Phone|Mobile/i);
-
-		// accelerometer detection
-		me.sys.hasAccelerometer = (
-			(typeof (window.DeviceMotionEvent) !== 'undefined') || (
-				(typeof (window.Windows) !== 'undefined') && 
-				(typeof (Windows.Devices.Sensors.Accelerometer) === 'function')
-			)
-		);
-
 		// init the FPS counter if needed
 		me.timer.init();
 
@@ -947,7 +873,7 @@ window.me = window.me || {};
 	 * @memberOf me
 	 */
 	me.game = (function() {
-		// hold public stuff in our singletong
+		// hold public stuff in our singleton
 		var api = {};
 
 		/*---------------------------------------------
@@ -1088,6 +1014,9 @@ window.me = window.me || {};
 				// publish init notification
 				me.event.publish(me.event.GAME_INIT);
 
+                // translate global pointer events
+                me.input.translatePointerEvents();
+
 				// make display dirty by default
 				isDirty = true;
 
@@ -1185,6 +1114,8 @@ window.me = window.me || {};
 					targetContainer.name = group.name;
 					targetContainer.visible = group.visible;
 					targetContainer.z = group.z;
+  					targetContainer.setOpacity(group.opacity);                  
+                 
 
 					// disable auto-sort
 					targetContainer.autoSort = false;
@@ -1200,16 +1131,26 @@ window.me = window.me || {};
 					// create the corresponding entity
 					var entity = me.entityPool.newInstanceOf(obj.name, obj.x, obj.y, obj);
 
-					// set the entity z order correspondingly to its parent container/group
-					entity.z = group.z;
+					// ignore if the newInstanceOf function does not return a corresponding object
+					if (entity) {
+						
+						// set the entity z order correspondingly to its parent container/group
+						entity.z = group.z;
 
-					//apply group default opacity value if defined
-					if (entity.renderable && typeof entity.renderable.setOpacity === 'function') {
-						entity.renderable.setOpacity(group.opacity);
+						//set the object visible state based on the group visible state
+						entity.visible = (group.visible === true);
+
+						//apply group opacity value to the child objects if group are merged
+						if (api.mergeGroup === true && entity.isRenderable === true) {
+							entity.setOpacity(entity.getOpacity() * group.opacity);
+							// and to child renderables if any
+							if (entity.renderable !== null) {
+								entity.renderable.setOpacity(entity.renderable.getOpacity() * group.opacity);
+							}
+						}                        
+						// add the entity into the target container
+						targetContainer.addChild(entity);
 					}
-
-					// add the entity into the target container
-					targetContainer.addChild(entity);
 				}
 
 				// if we created a new container
@@ -1360,7 +1301,11 @@ window.me = window.me || {};
 					// wait the end of the current loop
 					/** @ignore */
 					pendingRemove = (function (obj) {
-						obj.ancestor.removeChild(obj);
+						// safety check in case the
+						// object was removed meanwhile
+						if (typeof obj.ancestor !== 'undefined') {
+							obj.ancestor.removeChild(obj);
+						}
 						pendingRemove = null;
 					}.defer(obj));
 				}
@@ -1425,11 +1370,12 @@ window.me = window.me || {};
 		 * @private
 		 * @ignore
 		 * @function
+         * @param {Number} time current timestamp
 		 */
-		api.update = function() {
+		api.update = function(time) {
 			
 			// update all objects
-			isDirty = api.world.update() || isDirty;
+			isDirty = api.world.update(time) || isDirty;
 			
 			// update the camera/viewport
 			isDirty = api.viewport.update(isDirty) || isDirty;

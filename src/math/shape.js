@@ -102,7 +102,12 @@
 
 		// the shape type
 		shapeType : "Rectangle",
-		
+
+		/*
+		 * will be replaced by pos and replace colPos in 1.0.0 :)
+		 * @ignore
+		 */
+		offset: null,
 		
 		/** @ignore */
 		init : function(v, w, h) {
@@ -117,6 +122,18 @@
                 this.rangeV = new me.Vector2d();
             }
             this.rangeV.set(0, 0);
+
+            if (this.offset === null) {
+                this.offset = new me.Vector2d();
+            }
+            this.offset.set(0, 0);
+
+            // allow to reduce the hitbox size
+            // while on keeping the original pos vector
+            // corresponding to the entity
+            if (this.colPos === null) {
+                this.colPos = new me.Vector2d();
+            }
 
 			this.width = w;
 			this.height = h;
@@ -182,6 +199,9 @@
 			
 			this.hWidth = ~~(w / 2);
 			this.hHeight = ~~(h / 2);
+
+			//reset offset
+			this.offset.set(0, 0);
 		},
 
         /**
@@ -529,6 +549,7 @@
 		set : function(v, w, h) {
 			this.radius.set(w/2, h/2);
             this.pos.setV(v).add(this.radius); 
+            this.offset = new me.Vector2d();
 		},
 
         /**
@@ -597,6 +618,11 @@
 	/** @scope me.PolyShape.prototype */	{
 	
 		/**
+		 * @ignore
+		 */
+		offset : null,
+
+		/**
 		 * origin point of the PolyShape
 		 * @public
 		 * @type me.Vector2d
@@ -633,6 +659,11 @@
             if (this.pos === null) {
                 this.pos = new me.Vector2d();
             }
+
+            if (this.offset === null) {
+                this.offset = new me.Vector2d();
+            }
+ 
             this.set(v, points, closed);
 		},
 
@@ -649,6 +680,8 @@
 			this.pos.setV(v);
             this.points = points;
             this.closed = (closed === true);
+            this.offset.set(0, 0);
+            this.getBounds();
 		},
 
         /**
@@ -659,7 +692,7 @@
          * @return {me.Rect} the bounding box Rectangle	object
          */
         getBounds : function() {
-            var pos = new me.Vector2d(), right = 0, bottom = 0;
+            var pos = this.offset, right = 0, bottom = 0;
             this.points.forEach(function(point) {
                 pos.x = Math.min(pos.x, point.x);
                 pos.y = Math.min(pos.y, point.y);
@@ -687,6 +720,7 @@
 		 */
 		draw : function(context, color) {
 			context.save();
+			context.translate(-this.offset.x, -this.offset.y);
 			context.strokeStyle = color || "red";
 			context.beginPath();
 			context.moveTo(this.points[0].x, this.points[0].y);

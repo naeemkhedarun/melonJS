@@ -68,7 +68,7 @@
 		 * @public
 		 * @function
 		 * @param {Properties} prop list of properties
-		 * @param {int} duration tween duration
+		 * @param {int} [duration=1000] tween duration
 		 */
 		this.to = function ( properties, duration ) {
 
@@ -90,7 +90,7 @@
 		 * @public
 		 * @function
 		 */
-		this.start = function ( time ) {
+		this.start = function () {
 
 			_onStartCallbackFired = false;
 
@@ -292,12 +292,10 @@
 		};
 		
 		/** @ignore*/
-		this.update = function ( /*time*/ ) {
+		this.update = function ( time ) {
 
 			var property;
-			
-			var time = me.timer.getTime();
-
+            
 			if ( time < _startTime ) {
 
 				return true;
