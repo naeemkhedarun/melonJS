@@ -346,14 +346,12 @@
 				compression = null;
 			}
 			
-			// associate a renderer to the layer (if not a collision layer)
-			if (!layer.isCollisionMap || me.debug.renderCollisionMap) {
-				if (!me.game.renderer.canRender(layer)) {
-					layer.setRenderer(me.mapReader.getNewDefaultRenderer(layer));
-				} else {
-					// use the default one
-					layer.setRenderer(me.game.renderer);
-				}
+			// associate a renderer to the layer
+			if (!me.game.renderer.canRender(layer)) {
+				layer.setRenderer(me.mapReader.getNewDefaultRenderer(layer));
+			} else {
+				// use the default one
+				layer.setRenderer(me.game.renderer);
 			}
 			
 			// parse the layer data
@@ -504,14 +502,12 @@
 			var layer = new me.TMXLayer(map.tilewidth, map.tileheight, map.orientation, map.tilesets, z);
 			// init the layer properly
 			layer.initFromJSON(data);
-			// associate a renderer to the layer (if not a collision layer)
-			if (!layer.isCollisionMap) {
-				if (!me.game.renderer.canRender(layer)) {
-					layer.setRenderer(me.mapReader.getNewDefaultRenderer(layer));
-				} else {
-					// use the default one
-					layer.setRenderer(me.game.renderer);
-				}
+			// associate a renderer to the layer
+			if (!me.game.renderer.canRender(layer)) {
+				layer.setRenderer(me.mapReader.getNewDefaultRenderer(layer));
+			} else {
+				// use the default one
+				layer.setRenderer(me.game.renderer);
 			}
 			// parse the layer data
 			this.setLayerData(layer, data[me.TMX_TAG_DATA], 'json', null);
