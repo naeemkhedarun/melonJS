@@ -62,11 +62,10 @@ me.collision = (function() {
      */
     (Object.defineProperty(api, "gridwidth", {
         get : function() {
-            var layer = me.game.collisionMap;
             return (
                 me.game.currentLevel.gridwidth ||
                 me.sys.collisionGridWidth ||
-                (layer && (layer.tilewidth * 2)) ||
+                (me.game.currentLevel.tilewidth * 2) ||
                 128
             );
         }
@@ -81,11 +80,10 @@ me.collision = (function() {
      */
     (Object.defineProperty(api, "gridheight", {
         get : function() {
-            var layer = me.game.collisionMap;
             return (
                 me.game.currentLevel.gridheight ||
                 me.sys.collisionGridHeight ||
-                (layer && (layer.tileheight * 2)) ||
+                (me.game.currentLevel.tileheight * 2) ||
                 128
             );
         }
@@ -100,8 +98,7 @@ me.collision = (function() {
      */
     (Object.defineProperty(api, "cols", {
         get : function() {
-            var layer = me.game.collisionMap || me.game.currentLevel;
-            return Math.ceil(layer.width / api.gridwidth);
+            return Math.ceil(me.game.currentLevel.width / api.gridwidth);
         }
     }));
 
@@ -114,8 +111,7 @@ me.collision = (function() {
      */
     (Object.defineProperty(api, "rows", {
         get : function() {
-            var layer = me.game.collisionMap || me.game.currentLevel;
-            return Math.ceil(layer.height / api.gridheight);
+            return Math.ceil(me.game.currentLevel.height / api.gridheight);
         }
     }));
 
@@ -181,28 +177,30 @@ me.collision = (function() {
         var rows = layer.rows;
         var gridwidth = api.gridwidth;
         var gridheight = api.gridheight;
-    
-        // Populate grid with me.Tile objects
-        for (var x = 0; x < cols; x++) {
-            for (var y = 0; y < rows; y++) {
-                var tile = layer.layerData[x][y];
-                if (!tile)
-                    continue;
+  
+        // parse the collision object group
+        for ( var o = 0; o < me.game.collisionMap.objects.length; o++) {
 
-                var props = tile.tileset.getTileProperties(tile.tileId);
+			var rect = me.game.collisionMap.objects[o];
+            // quick hack, but the returned object should probably be used
+            // to create a proper "shape object"
+            rect.left = rect.x;
+            rect.right = rect.x + rect.width;
+            rect.top = rect.y;
+            rect.bottom = rect.y + rect.height;
+                       
+            // default collision mask
+            rect.collisionMask = 0xFFFFFFFF;
+            
+            // add private collision properties
+            // (not sure thought it's the right place for it)
+			rect._collision = {
+				cells : [],
+				range : rect // reference this rectangle
+			};
 
-                if (props.isCollidable) {
-                    // Set collision mask for tile
-                    tile.collisionMask = (
-                        typeof(props.collisionmask) !== "undefined" ?
-                        props.collisionmask : 0xFFFFFFFF
-                    );
-
-                    api.add(tile);
-                }
-            }
+            api.add(rect);
         }
- 
     };
 
     /**

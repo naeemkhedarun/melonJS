@@ -329,36 +329,6 @@
 	
 	
 	/**
-	 * a generic collision tile based layer object
-	 * @memberOf me
-	 * @ignore
-	 * @constructor
-	 */
-	me.CollisionTiledLayer = me.Renderable.extend({
-		// constructor
-		init: function(cols, rows, tilewidth, tileheight, tilesets) {
-			this.cols = cols;
-			this.rows = rows;
-			this.tilewidth = tilewidth;
-			this.tileheight = tileheight;
-
-			this.parent(new me.Vector2d(0, 0), cols * tilewidth, rows * tileheight);
-
-			this.isCollisionMap = true;
-		},
-	
-		/**
-		 * reset function
-		 * @ignore
-		 * @function
-		 */
-		reset : function() {
-			// nothing to do here
-		}
-
-	});
-
-	/**
 	 * a TMX Tile Layer Object
 	 * Tiled QT 0.7.x format
 	 * @class
@@ -565,7 +535,7 @@
 		 * @param {Integer} tileId tileId
 		 * @return {me.Tile} the corresponding newly created tile object
 		 */
-		setTile : function(x, y, tileId, _ignoreGrid) {
+		setTile : function(x, y, tileId) {
 
 			// Get collisionMask property for new tile
 			var tile = new me.Tile(x, y, this.tilewidth, this.tileheight, tileId);
@@ -574,28 +544,7 @@
 			} else {
 				tile.tileset = this.tileset;
 			}
-            
-            // add tile information into the grid if a collision layer
-            if (_ignoreGrid !== true) {
-                
-                // Remove old tile from collision spacial grid
-                if (this.layerData[x][y] !== null) {
-                    me.collision.remove(this.layerData[x][y]);
-                }
-                
-                // get the Tile corresponding property
-                var props = tile.tileset.getTileProperties(tileId);
-                if (props.isCollidable) {
-                    tile.collisionMask = (
-                        typeof(props.collisionmask) !== "undefined" ?
-                        props.collisionmask : 0xFFFFFFFF
-                    );
-
-                    // Add new tile to collision spacial grid
-                    me.collision.add(tile);
-                }
-            }
-
+     
 			// Update layer data with new tile
 			this.layerData[x][y] = tile;
 
@@ -612,8 +561,6 @@
 		 * @param {Integer} y y position 
 		 */
 		clearTile : function(x, y) {
-            // Remove old tile from collision spacial grid
-            me.collision.remove(this.layerData[x][y]);
       
 			// clearing tile
 			this.layerData[x][y] = null;

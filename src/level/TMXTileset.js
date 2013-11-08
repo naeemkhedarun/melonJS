@@ -97,14 +97,6 @@
 			
 			// clear out the flags and set the tileId
 			this.tileId &= ~(FlippedHorizontallyFlag | FlippedVerticallyFlag | FlippedAntiDiagonallyFlag);
-
-			// private collision properties
-			this._collision = {
-				cells : [],
-				range : this // reference this rectangle
-			};
-
-			this.collisionMask = 0;
 		}
 	});
 	

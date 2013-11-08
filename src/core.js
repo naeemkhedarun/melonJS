@@ -1022,6 +1022,9 @@ window.me = window.me || {};
 
 				// set as initialized
 				initialized = true;
+                
+                // dummy current level
+                api.currentLevel = {pos:{x:0,y:0}};
 			}
 		};
 
@@ -1067,11 +1070,7 @@ window.me = window.me || {};
 			api.currentLevel = level;
 
 			// get the collision map
-			api.collisionMap = api.currentLevel.getLayerByName("collision");
-			if (!api.collisionMap || !api.collisionMap.isCollisionMap) {
-				api.collisionMap = null;
-				console.error("WARNING : no collision map detected");
-			}
+			api.collisionMap = api.currentLevel.getObjectGroupByName("collision");
 
 			// add all defined layers
 			var layers = api.currentLevel.getLayers();
@@ -1098,7 +1097,7 @@ window.me = window.me || {};
 			for ( var g = 0; g < objectGroups.length; g++) {
 				
 				var group = objectGroups[g];
-
+                
 				if (api.mergeGroup === false) {
 
 					// create a new container with Infinite size (?)

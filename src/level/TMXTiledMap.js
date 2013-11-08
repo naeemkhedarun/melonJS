@@ -181,19 +181,7 @@
 					break;
 				}
 			}
-
-			// return a fake collision layer if not found
-			if (layer == null &&
-				name.contains(me.COLLISION_LAYER)) {
-				layer = new me.CollisionTiledLayer(
-					this.cols,
-					this.rows,
-					this.tilewidth,
-					this.tileheight,
-					this.tilesets
-				);
-			}
-
+            
 			return layer;
 		},
 
@@ -214,7 +202,6 @@
 				}
 			}
 		}
-
 
 	});
 		
