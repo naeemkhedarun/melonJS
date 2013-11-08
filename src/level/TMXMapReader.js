@@ -144,7 +144,7 @@
 					// fill the array										
 					if (gid !== 0) {
 						// add a new tile to the layer
-						var tile = layer.setTile(x, y, gid);
+						var tile = layer.setTile(x, y, gid, true);
 						// draw the corresponding tile
 						if (layer.visible && layer.preRender) {
 							layer.renderer.drawTile(layer.layerSurface, x, y, tile, tile.tileset);

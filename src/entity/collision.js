@@ -127,6 +127,7 @@ me.collision = (function() {
      * @function
      */
     api.reset = function () {
+
         // Remove objects from old grid
         // TODO: Verify this is necessary
         for (var x = 0; x < grid.length; x++) {
@@ -180,7 +181,7 @@ me.collision = (function() {
         var rows = layer.rows;
         var gridwidth = api.gridwidth;
         var gridheight = api.gridheight;
-
+    
         // Populate grid with me.Tile objects
         for (var x = 0; x < cols; x++) {
             for (var y = 0; y < rows; y++) {
@@ -188,10 +189,7 @@ me.collision = (function() {
                 if (!tile)
                     continue;
 
-                var tileset = layer.tilesets.getTilesetByGid(
-                    tile.tileId
-                );
-                var props = tileset.getTileProperties(tile.tileId);
+                var props = tile.tileset.getTileProperties(tile.tileId);
 
                 if (props.isCollidable) {
                     // Set collision mask for tile
@@ -204,6 +202,7 @@ me.collision = (function() {
                 }
             }
         }
+ 
     };
 
     /**

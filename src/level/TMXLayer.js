@@ -565,11 +565,7 @@
 		 * @param {Integer} tileId tileId
 		 * @return {me.Tile} the corresponding newly created tile object
 		 */
-		setTile : function(x, y, tileId) {
-			// Remove old tile from collision spacial grid
-			if (this.layerData[x][y] !== null) {
-				me.collision.remove(this.layerData[x][y]);
-			}
+		setTile : function(x, y, tileId, _ignoreGrid) {
 
 			// Get collisionMask property for new tile
 			var tile = new me.Tile(x, y, this.tilewidth, this.tileheight, tileId);
@@ -578,16 +574,27 @@
 			} else {
 				tile.tileset = this.tileset;
 			}
-			var props = tile.tileset.getTileProperties(tileId);
-			if (props.isCollidable) {
-				tile.collisionMask = (
-					typeof(props.collisionmask) !== "undefined" ?
-					props.collisionmask : 0xFFFFFFFF
-				);
+            
+            // add tile information into the grid if a collision layer
+            if (_ignoreGrid !== true) {
+                
+                // Remove old tile from collision spacial grid
+                if (this.layerData[x][y] !== null) {
+                    me.collision.remove(this.layerData[x][y]);
+                }
+                
+                // get the Tile corresponding property
+                var props = tile.tileset.getTileProperties(tileId);
+                if (props.isCollidable) {
+                    tile.collisionMask = (
+                        typeof(props.collisionmask) !== "undefined" ?
+                        props.collisionmask : 0xFFFFFFFF
+                    );
 
-				// Add new tile to collision spacial grid
-				me.collision.add(tile);
-			}
+                    // Add new tile to collision spacial grid
+                    me.collision.add(tile);
+                }
+            }
 
 			// Update layer data with new tile
 			this.layerData[x][y] = tile;
@@ -605,9 +612,9 @@
 		 * @param {Integer} y y position 
 		 */
 		clearTile : function(x, y) {
-			// Remove old tile from collision spacial grid
-			me.collision.remove(this.layerData[x][y]);
-
+            // Remove old tile from collision spacial grid
+            me.collision.remove(this.layerData[x][y]);
+      
 			// clearing tile
 			this.layerData[x][y] = null;
 			// erase the corresponding area in the canvas
