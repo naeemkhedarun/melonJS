@@ -395,13 +395,6 @@
 			if (typeof (this.preRender) === 'undefined') {
 				this.preRender = me.sys.preRender;
 			}
-			
-			// detect if the layer is a collision map
-			this.isCollisionMap = (this.name.toLowerCase().contains(me.COLLISION_LAYER));
-			if (this.isCollisionMap && !me.debug.renderCollisionMap) {
-				// force the layer as invisible
-				this.visible = false;
-			}
 
 
 			// if pre-rendering method is use, create the offline canvas
@@ -434,13 +427,6 @@
 			// check for the correct rendering method
 			if (typeof (this.preRender) === 'undefined') {
 				this.preRender = me.sys.preRender;
-			}
-
-			// detect if the layer is a collision map
-			this.isCollisionMap = (this.name.toLowerCase().contains(me.COLLISION_LAYER));
-			if (this.isCollisionMap && !me.debug.renderCollisionMap) {
-				// force the layer as invisible
-				this.visible = false;
 			}
 
 			// if pre-rendering method is use, create the offline canvas
@@ -537,7 +523,7 @@
 		 */
 		setTile : function(x, y, tileId) {
 
-			// Get collisionMask property for new tile
+			// Get the corresponding tile
 			var tile = new me.Tile(x, y, this.tilewidth, this.tileheight, tileId);
 			if (!this.tileset.contains(tile.tileId)) {
 				tile.tileset = this.tileset = this.tilesets.getTilesetByGid(tile.tileId);
