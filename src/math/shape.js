@@ -128,13 +128,6 @@
             }
             this.offset.set(0, 0);
 
-            // allow to reduce the hitbox size
-            // while on keeping the original pos vector
-            // corresponding to the entity
-            if (this.colPos === null) {
-                this.colPos = new me.Vector2d();
-            }
-
 			this.width = w;
 			this.height = h;
 
