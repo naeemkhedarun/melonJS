@@ -651,9 +651,8 @@
             // to be removed once the ticket #103 will be done
             if (this.shapes.length === 1) {
                 this.collisionBox = this.shapes[0].getBounds();
-                // collisionBox pos vector is a reference to this pos vector
-                this.collisionBox.pos = this.pos;
                 // offset position vector
+                //(TODO: UPDATE/CLARIFY RESPECTING TO OTHER SHAPES)
                 this.pos.add(this.shapes[0].offset);
             }
 		},
