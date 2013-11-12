@@ -181,7 +181,7 @@ me.collision = (function() {
         // parse the collision object group
         for ( var o = 0; o < me.game.collisionMap.objects.length; o++) {
 
-			var rect = me.game.collisionMap.objects[o];
+            var rect = me.game.collisionMap.objects[o];
             // quick hack, but the returned object should probably be used
             // to create a proper "shape object"
             rect.left = rect.x;
@@ -194,10 +194,10 @@ me.collision = (function() {
             
             // add private collision properties
             // (not sure thought it's the right place for it)
-			rect._collision = {
-				cells : [],
-				range : rect // reference this rectangle
-			};
+            rect._collision = {
+                cells : [],
+                range : rect // reference this rectangle
+            };
 
             api.add(rect);
         }
