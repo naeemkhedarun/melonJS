@@ -102,12 +102,6 @@
 
         // the shape type
         shapeType : "Rectangle",
-
-        /*
-         * will be replaced by pos and replace colPos in 1.0.0 :)
-         * @ignore
-         */
-        offset: null,
         
         /** @ignore */
         init : function(v, w, h) {
@@ -122,11 +116,6 @@
                 this.rangeV = new me.Vector2d();
             }
             this.rangeV.set(0, 0);
-
-            if (this.offset === null) {
-                this.offset = new me.Vector2d();
-            }
-            this.offset.set(0, 0);
 
             this.width = w;
             this.height = h;
@@ -192,9 +181,6 @@
             
             this.hWidth = ~~(w / 2);
             this.hHeight = ~~(h / 2);
-
-            //reset offset
-            this.offset.set(0, 0);
         },
 
         /**

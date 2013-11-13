@@ -67,7 +67,6 @@
 		set : function(v, w, h) {
 			this.radius.set(w/2, h/2);
             this.pos.setV(v).add(this.radius); 
-            this.offset = new me.Vector2d();
 		},
 
         /**

@@ -555,7 +555,7 @@
 			// to enable collision detection			
 			this.collidable = typeof(settings.collidable) !== "undefined" ?	settings.collidable : true;
 			
-			// default objec type
+			// default object type
 			this.type = settings.type || 0;
 			
 			// default flip value
@@ -591,7 +591,7 @@
             else if ((settings.isPolygon===true) || (settings.isPolyline===true)) {
                 // add a polyshape
                 this.addShape(new me.PolyShape(new me.Vector2d(0,0), settings.points, settings.isPolygon));
-                // set the entity object based on the bounding box size ?
+                // adjust the entity size and position based on the corresponding bounding box
                 this.width = this.collisionBox.width;
                 this.height = this.collisionBox.height;
             } 
@@ -634,7 +634,7 @@
 		},
 
         /**
-		 * add a collision shape to this entity<
+		 * add a collision shape to this entity
 		 * @name addShape
 		 * @memberOf me.ObjectEntity
          * @public
@@ -651,9 +651,6 @@
             // to be removed once the ticket #103 will be done
             if (this.shapes.length === 1) {
                 this.collisionBox = this.shapes[0].getBounds();
-                // offset position vector
-                //(TODO: UPDATE/CLARIFY RESPECTING TO OTHER SHAPES)
-                this.pos.add(this.shapes[0].offset);
             }
 		},
          

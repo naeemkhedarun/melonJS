@@ -19,11 +19,6 @@
      */
     me.PolyShape = Object.extend(
     /** @scope me.PolyShape.prototype */ {
-    
-        /**
-         * @ignore
-         */
-        offset : null,
 
         /**
          * origin point of the PolyShape
@@ -62,11 +57,6 @@
             if (this.pos === null) {
                 this.pos = new me.Vector2d();
             }
-
-            if (this.offset === null) {
-                this.offset = new me.Vector2d();
-            }
- 
             this.set(v, points, closed);
         },
 
@@ -83,7 +73,6 @@
             this.pos.setV(v);
             this.points = points;
             this.closed = (closed === true);
-            this.offset.set(0, 0);
             this.getBounds();
         },
 
@@ -95,7 +84,7 @@
          * @return {me.Rect} the bounding box Rectangle    object
          */
         getBounds : function() {
-            var pos = this.offset, right = 0, bottom = 0;
+            var pos = this.pos.clone(), right = 0, bottom = 0;
             this.points.forEach(function(point) {
                 pos.x = Math.min(pos.x, point.x);
                 pos.y = Math.min(pos.y, point.y);
@@ -123,7 +112,7 @@
          */
         draw : function(context, color) {
             context.save();
-            context.translate(-this.offset.x, -this.offset.y);
+            context.translate(-this.pos.x, -this.pos.y);
             context.strokeStyle = color || "red";
             context.beginPath();
             context.moveTo(this.points[0].x, this.points[0].y);
