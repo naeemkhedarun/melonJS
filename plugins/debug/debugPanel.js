@@ -148,14 +148,13 @@
 
 				// check if debug mode is enabled
 				if (me.debug.renderHitBox && this.shapes.length) {
-                  
-                    // draw the original shape as well
-                    var x = this.pos.x + this.shapes[0].pos.x;
-                    var y = this.pos.y + this.shapes[0].pos.y;
-					context.translate(x, y);
-                    this.shapes[0].draw(context, "red");
+            		context.translate(this.pos.x, this.pos.y);
                     this.shapes[0].getBounds().draw(context, "red");
-	                context.translate(-x, -y);
+                    // draw the original shape as well
+                    if (this.shapes[0].shapeType !== "Rectangle") {
+                    	this.shapes[0].draw(context, "red");
+                   	}
+	                context.translate(-this.pos.x, -this.pos.y);
 				}
                 
 				if (me.debug.renderVelocity) {

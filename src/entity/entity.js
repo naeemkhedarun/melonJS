@@ -594,7 +594,8 @@
                 // adjust the entity size and position based on the corresponding bounding box
                 this.width = this.collisionBox.width;
                 this.height = this.collisionBox.height;
-            } 
+                this.pos.add(this.collisionBox.pos);
+           } 
             else {
                 // add a rectangle
                 this.addShape(new me.Rect(new me.Vector2d(0,0), this.width, this.height));
