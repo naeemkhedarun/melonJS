@@ -310,15 +310,6 @@
 	/** @scope me.ObjectEntity.prototype */ {
 	
 		/**
-		 * Entity "Game Unique Identifier"<br>
-		 * @public
-		 * @type String
-		 * @name GUID
-		 * @memberOf me.ObjectEntity
-		 */
-		GUID : null,
-
-		/**
 		 * define the type of the object<br>
 		 * default value : none<br>
 		 * @public
@@ -406,9 +397,6 @@
 					this.renderable.setTransparency(settings.transparent_color);
 				}
 			}
-
-			// set the object GUID value
-			this.GUID = me.utils.createGUID();
 
 			// set the object entity name
 			this.name = settings.name?settings.name.toLowerCase():"";
