@@ -324,7 +324,7 @@
 		 * @memberOf me.audio
 		 * @public
 		 * @function
-		 * @return {boolean}
+		 * @return {Boolean}
 		 */
 		obj.isAudioEnable = function() {
 			return sound_enable;
@@ -656,7 +656,7 @@
 		 * @public
 		 * @function
 		 * @param {String} sound_id audio track id
-		 * @return {boolean} true if unloaded
+		 * @return {Boolean} true if unloaded
 		 * @example
 		 * me.audio.unload("awesome_music");
 		 */
