@@ -14,13 +14,13 @@
 	var globalTranslation = new me.Rect(new me.Vector2d(), 0, 0);
 
 	/**
-	 * A global "floating entity" reference counter for nested ObjectContainers
+	 * A global "floating children" reference counter for nested ObjectContainers
 	 * @ignore
 	 */
 	var globalFloatingCounter = 0;
 
 	/**
-	 * EntityContainer represents a collection of child objects
+	 * ObjectContainer represents a collection of child objects
 	 * @class
 	 * @extends me.Renderable
 	 * @memberOf me
@@ -34,7 +34,7 @@
 		/** @scope me.ObjectContainer.prototype */ {
 
 		/**
-		 * The property of entity that should be used to sort on <br>
+		 * The property of the child object that should be used to sort on <br>
 		 * value : "x", "y", "z" (default: me.game.sortOn)
 		 * @public
 		 * @type String
@@ -44,7 +44,7 @@
 		sortOn : "z",
 		
 		/** 
-		 * Specify if the entity list should be automatically sorted when adding a new child
+		 * Specify if the children list should be automatically sorted when adding a new child
 		 * @public
 		 * @type Boolean
 		 * @name autoSort
@@ -152,7 +152,7 @@
 				this.children[index2] = child;
 				
 			} else {
-				throw "melonJS (me.ObjectContainer): " + child + " Both the supplied entities must be a child of the caller " + this;
+				throw "melonJS (me.ObjectContainer): " + child + " Both the supplied childs must be a child of the caller " + this;
 			}
 		},
 
@@ -198,7 +198,7 @@
 		 * return the child corresponding to the given property and value.<br>
 		 * note : avoid calling this function every frame since
 		 * it parses the whole object tree each time
-		 * @name getEntityByProp
+		 * @name getChildByProp
 		 * @memberOf me.ObjectContainer
 		 * @public
 		 * @function
@@ -206,12 +206,12 @@
 		 * @param {String} value Value of the property
 		 * @return {me.Renderable[]} Array of childs
 		 * @example
-		 * // get the first entity called "mainPlayer" in a specific container :
-		 * ent = myContainer.getEntityByProp("name", "mainPlayer");
+		 * // get the first child object called "mainPlayer" in a specific container :
+		 * ent = myContainer.getChildByProp("name", "mainPlayer");
 		 * // or query the whole world :
-		 * ent = me.game.world.getEntityByProp("name", "mainPlayer");
+		 * ent = me.game.world.getChildByProp("name", "mainPlayer");
 		 */
-		getEntityByProp : function(prop, value)	{
+		getChildByProp : function(prop, value)	{
 			var objList = [];	
 			// for string comparaisons
 			var _regExp = new RegExp(value, "i");
@@ -229,8 +229,8 @@
 			for (var i = this.children.length, obj; i--, obj = this.children[i];) {
 				if (obj instanceof me.ObjectContainer) {
 					compare(obj, prop);
-					objList = objList.concat(obj.getEntityByProp(prop, value));
-				} else if (obj.isEntity) {
+					objList = objList.concat(obj.getChildByProp(prop, value));
+				} else {
 					compare(obj, prop);
 				}
 			}
@@ -264,7 +264,7 @@
 				this.children.splice( this.getChildIndex(child), 1 );
 			
 			} else {
-				throw "melonJS (me.ObjectContainer): " + child + " The supplied entity must be a child of the caller " + this;
+				throw "melonJS (me.ObjectContainer): " + child + " The supplied child must be a child of the caller " + this;
 			}
 		},
         
@@ -446,39 +446,47 @@
 					// skip this object
 					continue;
 				}
+                
+                if ( obj.isRenderable ) {
 
-				isFloating = (globalFloatingCounter > 0 || obj.floating);
-				if (isFloating) {
-					globalFloatingCounter++;
-				}
+                    isFloating = (globalFloatingCounter > 0 || obj.floating);
+                    if (isFloating) {
+                        globalFloatingCounter++;
+                    }
 
-				// Translate global context
-				isTranslated = (obj.visible && !isFloating && obj.pos);
-				if (isTranslated) {
-					x = obj.pos.x;
-					y = obj.pos.y;
-					globalTranslation.translateV(obj.pos);
-					globalTranslation.set(globalTranslation.pos, obj.width, obj.height);
-				}
+                    // Translate global context
+                    isTranslated = (obj.visible && !isFloating);
+                    if (isTranslated) {
+                        x = obj.pos.x;
+                        y = obj.pos.y;
+                        globalTranslation.translateV(obj.pos);
+                        globalTranslation.set(globalTranslation.pos, obj.width, obj.height);
+                    }
 
-				// check if object is visible
-				obj.inViewport = obj.visible && (
-					isFloating || (obj.getBounds && viewport.isVisible(globalTranslation))
-				);
+                    // check if object is visible
+                    obj.inViewport = obj.visible && (
+                        isFloating || viewport.isVisible(globalTranslation)
+                    );
 
-				// update our object
-				isDirty |= (obj.inViewport || obj.alwaysUpdate) && obj.update(time);
+                    // update our object
+                    isDirty |= (obj.inViewport || obj.alwaysUpdate) && obj.update();
 
-				// Undo global context translation
-				if (isTranslated) {
-					globalTranslation.translate(-x, -y);
-				}
+                    // Undo global context translation
+                    if (isTranslated) {
+                        globalTranslation.translate(-x, -y);
+                    }
 
-				if (globalFloatingCounter > 0) {
-					globalFloatingCounter--;
-				}
-			}
-
+                    if (globalFloatingCounter > 0) {
+                        globalFloatingCounter--;
+                    }
+                    
+                } else {
+                
+                    // just directly call update() for non renderable object
+                    isDirty |= obj.alwaysUpdate && obj.update();
+                }
+            }
+             
 			return isDirty;
 		},
 
