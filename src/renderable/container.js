@@ -132,7 +132,7 @@
 						// allocated a GUID value
 						child.GUID = me.utils.createGUID();
 					}
-            	}
+				}
 				
 				child.ancestor = this;
 				
