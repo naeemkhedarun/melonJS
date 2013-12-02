@@ -907,7 +907,7 @@ window.me = window.me || {};
 		 * @private
 		 */
 		Array.isArray = function isArray(obj) {
-			return _toString(obj) == "[object Array]";
+			return Object.prototype.toString.call(obj) === "[object Array]";
 		};
 	}
 
