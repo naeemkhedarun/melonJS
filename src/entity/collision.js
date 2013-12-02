@@ -124,10 +124,12 @@ me.collision = (function() {
      */
     api.reset = function () {
 
+        var x, y;
+
         // Remove objects from old grid
         // TODO: Verify this is necessary
-        for (var x = 0; x < grid.length; x++) {
-            for (var y = 0; y < grid[x].length; y++) {
+        for (x = 0; x < grid.length; x++) {
+            for (y = 0; y < grid[x].length; y++) {
                 while (grid[x][y].objects.length) {
                     var obj = grid[x][y].objects[0];
                     if (obj._collision)
@@ -148,9 +150,9 @@ me.collision = (function() {
 
         // Create new empty grid
         grid = [];
-        for (var x = 0; x < cols; x++) {
+        for (x = 0; x < cols; x++) {
             grid[x] = [];
-            for (var y = 0; y < rows; y++) {
+            for (y = 0; y < rows; y++) {
                 grid[x][y] = new me.Rect(
                     new me.Vector2d(x * gridwidth, y * gridheight),
                     gridwidth,

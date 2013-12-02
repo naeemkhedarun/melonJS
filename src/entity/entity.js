@@ -1030,7 +1030,7 @@
 		 */
 		onCollision : function(obj, depth) {
 			// destroy the object if collectable
-			if (this.type == me.collision.types.COLLECTABLE_OBJECT) {
+			if (this.type === me.collision.types.COLLECTABLE_OBJECT) {
 				me.game.remove(this);
 				return false;
 			}
