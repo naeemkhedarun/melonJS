@@ -90,8 +90,9 @@
 		 * @memberOf me.ObjectContainer
 		 * @function
 		 * @param {me.Renderable} child
+		 * @param {number} [zIndex] forces the z index of the child to the specified value.
 		 */
-		addChild : function(child) {
+		addChild : function(child, zIndex) {
 			if(typeof(child.ancestor) !== 'undefined') {
 				child.ancestor.removeChild(child);
 			} else {
@@ -101,6 +102,11 @@
 					// allocated a GUID value
 					child.GUID = me.utils.createGUID();
 				}
+            }
+            
+            // change the child z-index if one is specified
+            if (typeof(zIndex) === 'number') {
+                    child.z = zIndex;
             }
 
 			child.ancestor = this;
@@ -119,6 +125,7 @@
 		 * @memberOf me.ObjectContainer
 		 * @function
 		 * @param {me.Renderable} child
+		 * @param {Number} index
 		 */
 		addChildAt : function(child, index) {
 			if((index >= 0) && (index < this.children.length)) {
@@ -251,6 +258,40 @@
 			return objList;
 		},
 		
+
+		/**
+		 * returns the list of childs with the specified name<br>
+		 * as defined in Tiled (Name field of the Object Properties)<br>
+		 * note : avoid calling this function every frame since
+		 * it parses the whole object list each time
+		 * @name getEntityByName
+		 * @memberOf me.ObjectContainer
+		 * @public
+		 * @function
+		 * @param {String} name entity name
+		 * @return {me.Renderable[]} Array of childs
+		 */
+		getEntityByName : function(name) {
+			return this.getChildByProp("name", name);
+		},
+		
+		/**
+		 * return the child corresponding to the specified GUID<br>
+		 * note : avoid calling this function every frame since
+		 * it parses the whole object list each time
+		 * @name getEntityByGUID
+		 * @memberOf me.ObjectContainer
+		 * @public
+		 * @function
+		 * @param {String} GUID entity GUID
+		 * @return {me.Renderable} corresponding child or null
+		 */
+		getEntityByGUID : function(guid) {
+			var obj = this.getChildByProp("GUID", guid);
+			return (obj.length>0)?obj[0]:null;
+		},
+
+
 		/**
 		 * Removes (and optionally destroys) a child from the container.<br>
 		 * (removal is immediate and unconditional)<br>

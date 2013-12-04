@@ -154,11 +154,11 @@
 				// update the screen size if added as an object
 				this.set(new me.Vector2d(), me.game.viewport.width, me.game.viewport.height);
 				// add ourself !
-				me.game.add(this, this.z);
+				me.game.world.addChild(this);
 			}
 			
 			// sort the object pool
-			me.game.sort();
+			me.game.world.sort();
 
 		},
 

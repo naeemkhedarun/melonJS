@@ -701,7 +701,6 @@ window.me = window.me || {};
 		};  
 	}
 
-		
 	if(!String.prototype.trimRight) {  
 		/**
 		 * returns the string stripped of whitespace from the right end of the string.
@@ -1274,91 +1273,16 @@ window.me = window.me || {};
 
 		};
 
-		/**
-		 * Manually add object to the game manager
-		 * @deprecated @see me.game.world.addChild()
-		 * @name add
-		 * @memberOf me.game
-		 * @param {me.ObjectEntity} obj Object to be added
-		 * @param {Number} [z="obj.z"] z index
-		 * @public
-		 * @function
-		 * @example
-		 * // create a new object
-		 * var obj = new MyObject(x, y)
-		 * // add the object and force the z index of the current object
-		 * me.game.add(obj, this.z);
-		 */
-		api.add = function(object, zOrder) {
-			if (typeof(zOrder) !== 'undefined') {
-				object.z = zOrder;
-			}
-			// add the object in the game obj list
-			api.world.addChild(object);
-
-		};
-
 
 		/**
-		 * returns the list of entities with the specified name<br>
-		 * as defined in Tiled (Name field of the Object Properties)<br>
-		 * note : avoid calling this function every frame since
-		 * it parses the whole object list each time
-		 * @deprecated use me.game.world.getChildByProp();
-		 * @name getEntityByName
-		 * @memberOf me.game
-		 * @public
-		 * @function
-		 * @param {String} entityName entity name
-		 * @return {me.ObjectEntity[]} Array of object entities
-		 */
-		api.getEntityByName = function(entityName) {
-			return api.world.getChildByProp("name", entityName);
-		};
-		
-		/**
-		 * return the entity corresponding to the specified GUID<br>
-		 * note : avoid calling this function every frame since
-		 * it parses the whole object list each time
-		 * @deprecated use me.game.world.getChildByProp();
-		 * @name getEntityByGUID
-		 * @memberOf me.game
-		 * @public
-		 * @function
-		 * @param {String} GUID entity GUID
-		 * @return {me.ObjectEntity} Object Entity (or null if not found)
-		 */
-		api.getEntityByGUID = function(guid) {
-			var obj = api.world.getChildByProp("GUID", guid);
-			return (obj.length>0)?obj[0]:null;
-		};
-		
-		/**
-		 * return the entity corresponding to the property and value<br>
-		 * note : avoid calling this function every frame since
-		 * it parses the whole object list each time
-		 * @deprecated use me.game.world.getChildByProp();
-		 * @name getEntityByProp
-		 * @memberOf me.game
-		 * @public
-		 * @function
-		 * @param {String} prop Property name
-		 * @param {String} value Value of the property
-		 * @return {me.ObjectEntity[]} Array of object entities
-		 */
-		api.getEntityByProp = function(prop, value) {
-			return api.world.getChildByProp(prop, value);
-		};
-
-		/**
-		 * Returns the entity container of the specified Child in the game world
-		 * @name getEntityContainer
+		 * Returns the parent container of the specified Child in the game world
+		 * @name getParentContainer
 		 * @memberOf me.game
 		 * @function
-		 * @param {me.ObjectEntity} child
+		 * @param {me.Renderable} child
 		 * @return {me.ObjectContainer}
 		 */
-		api.getEntityContainer = function(child) {
+		api.getParentContainer = function(child) {
 			return child.ancestor;
 		};
 
