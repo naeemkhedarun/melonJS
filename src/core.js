@@ -1342,25 +1342,6 @@ window.me = window.me || {};
 		};
 
 		/**
-		 * Manually trigger the sort all the game objects.</p>
-		 * Since version 0.9.9, all objects are automatically sorted, <br>
-		 * except if a container autoSort property is set to false.
-		 * @deprecated use me.game.world.sort();
-		 * @name sort
-		 * @memberOf me.game
-		 * @public
-		 * @function
-		 * @example
-		 * // change the default sort property
-		 * me.game.sortOn = "y";
-		 * // manuallly call me.game.sort with our sorting function
-		 * me.game.sort();
-		 */
-		api.sort = function() {
-			api.world.sort();
-		};
-
-		/**
 		 * force the redraw (not update) of all objects
 		 * @name repaint
 		 * @memberOf me.game
