@@ -114,8 +114,16 @@
 		var mouseEventList =   ['mousewheel', 'mousemove', 'mousedown', 'mouseup', undefined, 'click', 'dblclick'];
 		var touchEventList =   [undefined, 'touchmove', 'touchstart', 'touchend', 'touchcancel', 'tap', 'dbltap'];
 		// (a polyfill will probably be required at some stage, once this will be fully standardized
-		var pointerEventList = ['mousewheel', 'PointerMove', 'PointerDown', 'PointerUp', 'PointerCancel', undefined, undefined ];
+		var pointerEventList = ['mousewheel', 'pointermove', 'pointerdown', 'pointerup', 'pointercancel', undefined, undefined ];
+		var MSPointerEventList = ['mousewheel', 'MSPointerMove', 'MSPointerDown', 'MSPointerUp', 'MSPointerCancel', undefined, undefined ];
 		
+		// internal constants
+		var MOUSE_WHEEL = 0;
+		var POINTER_MOVE = 1;
+		var POINTER_DOWN = 2;
+		var POINTER_UP = 3;
+		var POINTER_CANCEL = 4;
+
 		/**
 		 * enable keyboard event
 		 * @ignore
@@ -160,37 +168,28 @@
 						me.event.publish(me.event.WINDOW_ONSCROLL, [ e ]);
 					}
 				), false);
-				
-			    // MSPointer can hold Mouse & Touch events
-				if (window.navigator.pointerEnabled) {
+
+				// check standard
+				if(window.navigator.pointerEnabled) {
 					activeEventList = pointerEventList;
-					// check for backward compatibility with the 'MS' prefix
-					var useMSPrefix = window.navigator.msPointerEnabled;
-					for(var x = 1; x < activeEventList.length; ++x) {
-						if (activeEventList[x] && !activeEventList[x].contains('MS')) {
-							activeEventList[x] = useMSPrefix ? 'MS' + activeEventList[x] : activeEventList[x].toLowerCase();
-						}
-						// register mouse wheel event
-						window.addEventListener(activeEventList[0], onMouseWheel, false);
-					}
-					// register PointerEvents
-					registerEventListener(activeEventList, onPointerEvent);
-				} else {
-                    // Regular `touch****` events for iOS/Android devices
-				    if (me.device.touch) {
-						activeEventList = touchEventList;
-						registerEventListener(activeEventList, onPointerEvent);
-				    } else {
-						// Regular Mouse events
-				        activeEventList = mouseEventList;
-						registerEventListener(activeEventList, onPointerEvent);
-						
-						// detect wheel event support
-						// Modern browsers support "wheel", Webkit and IE support at least "mousewheel  
-						wheeltype = "onwheel" in document.createElement("div") ? "wheel" : "mousewheel";
-						window.addEventListener(wheeltype, onMouseWheel, false);						
-				    }
 				}
+				else if(window.navigator.msPointerEnabled) { // check for backward compatibility with the 'MS' prefix
+					activeEventList = MSPointerEventList;
+				}
+				else if (me.device.touch) { //  `touch****` events for iOS/Android devices
+					activeEventList = touchEventList;
+				}
+				else { // Regular Mouse events
+					activeEventList = mouseEventList;
+				}
+
+				registerEventListener(activeEventList, onPointerEvent);
+
+				// detect wheel event support
+				// Modern browsers support "wheel", Webkit and IE support at least "mousewheel
+				wheeltype = "onwheel" in document.createElement("div") ? "wheel" : "mousewheel";
+				window.addEventListener(wheeltype, onMouseWheel, false);
+
 				// set the PointerMove/touchMove/MouseMove event
 				if (obj.throttlingInterval === undefined) {
 					// set the default value
@@ -198,10 +197,10 @@
 				}
 				// if time interval <= 16, disable the feature
 				if (obj.throttlingInterval < 17) {
-					me.video.getScreenCanvas().addEventListener(activeEventList[1], onMoveEvent, false);
+					me.video.getScreenCanvas().addEventListener(activeEventList[POINTER_MOVE], onMoveEvent, false);
 				}
 				else {
-					me.video.getScreenCanvas().addEventListener(activeEventList[1], throttle(obj.throttlingInterval, false, function(e){onMoveEvent(e);}), false);
+					me.video.getScreenCanvas().addEventListener(activeEventList[POINTER_MOVE], throttle(obj.throttlingInterval, false, function(e){onMoveEvent(e);}), false);
 				}
 				pointerInitialized = true;
 			}
@@ -299,13 +298,10 @@
 			var handled = false;
 			var handlers = evtHandlers[e.type];
 
-			// Convert touchcancel -> touchend, and PointerCancel -> PointerEnd
+			// Convert touchcancel -> touchend, and pointercancel -> pointerup
 			if (!handlers) {
-				if (e.type === "touchcancel") {
-					handlers = evtHandlers["touchend"];
-				}
-				else if (e.type === "PointerCancel") {
-					handlers = evtHandlers["PointerUp"];
+				if (activeEventList.indexOf(e.type) === POINTER_CANCEL) {
+					handlers = evtHandlers[activeEventList[POINTER_UP]];
 				} else {
 					handlers = evtHandlers[e.type];
 				}
@@ -322,7 +318,7 @@
 					}
 
 					// if PointerEvent is not supported 
-					if (!navigator.pointerEnabled) {	
+					if (!me.device.pointerEnabled) {	
 						// -> define pointerId to simulate the PointerEvent standard
 						e.pointerId = obj.changedTouches[t].id;
 					}
@@ -456,7 +452,7 @@
 
 			// check if mapped to a key
 			if (keycode) {
-				if (e.type === activeEventList[2])
+				if (e.type === activeEventList[POINTER_DOWN])
 					return keydown(e, keycode, button + 1);
 				else // 'mouseup' or 'touchend'
 					return keyup(e, keycode, button + 1);
@@ -847,7 +843,7 @@
 		    enablePointerEvent();
 
 		    // convert mouse events to iOS/PointerEvent equivalent
-		    if ((mouseEventList.indexOf(eventType) !== -1) && (me.device.touch || window.navigator.pointerEnabled)) {
+		    if ((mouseEventList.indexOf(eventType) !== -1) && (me.device.touch || me.device.pointerEnabled)) {
 		        eventType = activeEventList[mouseEventList.indexOf(eventType)];
 		    }
 			// >>>TODO<<< change iOS touch event to their PointerEvent equivalent & vice-versa
@@ -887,7 +883,7 @@
 		 */
 		obj.releasePointerEvent = function(eventType, rect) {
 			// convert mouse events to iOS/MSPointer equivalent
-		    if ((mouseEventList.indexOf(eventType) !== -1) && (me.device.touch || window.navigator.pointerEnabled)) {
+		    if ((mouseEventList.indexOf(eventType) !== -1) && (me.device.touch || me.device.pointerEnabled)) {
 		        eventType = activeEventList[mouseEventList.indexOf(eventType)];
 		    }
 			// >>>TODO<<< change iOS touch event to their PointerEvent equivalent & vice-versa
