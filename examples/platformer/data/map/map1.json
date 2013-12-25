@@ -1,4 +1,5 @@
-{ "height":17,
+{ "backgroundcolor":"#cc66ff",
+ "height":17,
  "layers":[
         {
          "height":17,
@@ -413,7 +414,7 @@
  "orientation":"orthogonal",
  "properties":
     {
-     "backgroundcolor":"#aa55ff"
+
     },
  "tileheight":35,
  "tilesets":[
