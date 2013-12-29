@@ -211,8 +211,8 @@
             return this;
 		},
 
-		/** @ignore 
-		 * make it resetable (for usage with object pooling)
+		/** 
+		 * @ignore 
 		 */
 		onResetEvent : function() {
             this.setColor(0, 0, 0, 1.0);
@@ -322,6 +322,24 @@
 
 			this.alpha = 1.0;
 
+			return this;
+		},
+
+
+		/**
+		 * generate random r,g,b values for this Color object
+		 * @name random
+		 * @memberOf me.Color
+		 * @function
+		 * @return {me.Color} Reference to this object for method chaining
+		 */
+		random : function(c) {
+			this.setColor(
+				Math.floor(Math.random()*256),
+				Math.floor(Math.random()*256),
+				Math.floor(Math.random()*256),
+				this.alpha
+			);
 			return this;
 		},
 

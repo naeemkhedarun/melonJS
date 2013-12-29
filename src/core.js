@@ -701,7 +701,20 @@ window.me = window.me || {};
 		 * @return {String} trimmed string
 		 */
 		String.prototype.trim = function () {  
-			return (this.replace(/^\s+/, '')).replace(/\s+$/, ''); 
+			return this.replace(/^\s+|\s+$/gm, '');
+
+		};  
+	}
+
+	if(!String.prototype.trimLeft) {  
+		/**
+		 * returns the string stripped of whitespace from the left of the string.
+		 * @memberof! external:String#
+		 * @alias trimLeft
+		 * @return {String} trimmed string
+		 */
+		String.prototype.trimLeft = function () {  
+			return this.replace(/^\s+/, '');
 		};  
 	}
 
@@ -737,16 +750,19 @@ window.me = window.me || {};
 		return (this !== null && ("true" === this.trim() || "false" === this.trim()));
 	};
 
-	/**
-	 * add a contains fn to the string object
-	 * @memberof! external:String#
-	 * @alias contains
-	 * @param {String} string to test for
-	 * @return {Boolean} true if contains the specified string
-	 */
-	String.prototype.contains = function(word) {
-		return this.indexOf(word) > -1;
-	};
+	if (!String.prototype.contains) {
+		/**
+		 * determines whether or not a string contains another string.
+		 * @memberof! external:String#
+		 * @alias contains
+		 * @param {String} str A string to be searched for within this string.
+		 * @param {Number} [startIndex=0] The position in this string at which to begin searching for given string.
+		 * @return {Boolean} true if contains the specified string
+		 */
+		String.prototype.contains = function(str, startIndex) {
+	        return -1 !== String.prototype.indexOf.call(this, str, startIndex);
+		};
+	}
 
 	/**
 	 * convert the string to hex value
@@ -987,6 +1003,11 @@ window.me = window.me || {};
 		// to know when we have to refresh the display
 		var isDirty = true;
 
+		// frame counter for frameSkipping
+		// reset the frame counter
+		var frameCounter = 0;
+		var frameRate = 1;
+
 		/*---------------------------------------------
 
 			PUBLIC STUFF
@@ -1143,6 +1164,10 @@ window.me = window.me || {};
 
 			// dummy current level
 			api.currentLevel = {pos:{x:0,y:0}};
+
+			// reset the frame counter
+			frameCounter = 0;
+			frameRate = Math.round(60/me.sys.fps);
 		};
 	
 		/**
@@ -1235,15 +1260,20 @@ window.me = window.me || {};
          * @param {Number} time current timestamp
 		 */
 		api.update = function(time) {
-			
-			// update all objects
-			isDirty = api.world.update(time) || isDirty;
-			
-			// update the camera/viewport
-			isDirty = api.viewport.update(isDirty) || isDirty;
+			// handle frame skipping if required
+			if ((++frameCounter%frameRate)===0) {
+				// reset the frame counter
+				frame = 0;
+				
+				// update the timer
+				me.timer.update(time);
 
-			return isDirty;
+				// update all objects
+				isDirty = api.world.update(time) || isDirty;
 			
+				// update the camera/viewport
+				isDirty = api.viewport.update(isDirty) || isDirty;
+			}
 		};
 		
 
