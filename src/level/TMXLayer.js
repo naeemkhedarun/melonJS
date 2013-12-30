@@ -543,14 +543,6 @@
 		},
 
 		/**
-		 * a dummy update function
-		 * @ignore
-		 */
-		update : function() {
-			return false;
-		},
-
-		/**
 		 * draw a tileset layer
 		 * @ignore
 		 */

@@ -537,13 +537,13 @@ window.me = window.me || {};
 		 * @ignore
 		 */
 		window.throttle = function( delay, no_trailing, callback, debounce_mode ) {
-			var last = Date.now(), deferTimer;
+			var last = window.performance.now(), deferTimer;
 			// `no_trailing` defaults to false.
 			if ( typeof no_trailing !== 'boolean' ) {
 			  no_trailing = false;
 			}
 			return function () {
-				var now = Date.now();
+				var now = window.performance.now();
 				var elasped = now - last;
 				var args = arguments;
 				if (elasped < delay) {
@@ -570,8 +570,32 @@ window.me = window.me || {};
 		 * supporting Date.now (JS 1.5)
 		 * @ignore
 		 */
-		Date.now = function(){return new Date().getTime();};
+        Date.now = function() { 
+            return new Date().getTime();
+        };
 	}
+    
+    // define window.performance if undefined
+    if (typeof window.performance === 'undefined') {
+        window.performance = {};
+    }
+ 
+    if (!window.performance.now){
+        var timeOffset = Date.now();
+        
+        if (window.performance.timing && window.performance.timing.navigationStart){
+            timeOffset = window.performance.timing.navigationStart;
+        }
+        /**
+         * provide a polyfill for window.performance now
+         * to provide consistent time information across browser
+         * (always return the elapsed time since the browser started)
+         * @ignore
+         */
+        window.performance.now = function() { 
+            return Date.now() - timeOffset;
+        };
+    }
 
 	if(typeof console === "undefined") {
 		/**
@@ -1257,7 +1281,7 @@ window.me = window.me || {};
 		 * @private
 		 * @ignore
 		 * @function
-         * @param {Number} time current timestamp
+         * @param {Number} time current timestamp as provided by the RAF callback
 		 */
 		api.update = function(time) {
 			// handle frame skipping if required
@@ -1268,8 +1292,8 @@ window.me = window.me || {};
 				// update the timer
 				me.timer.update(time);
 
-				// update all objects
-				isDirty = api.world.update(time) || isDirty;
+				// update all objects (andd pass the elapsed time since last frame)
+				isDirty = api.world.update(me.timer.getDelta()) || isDirty;
 			
 				// update the camera/viewport
 				isDirty = api.viewport.update(isDirty) || isDirty;

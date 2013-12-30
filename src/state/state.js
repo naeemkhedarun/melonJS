@@ -50,7 +50,7 @@
 	 *
 	 *
 	 *    // make sure the screen is only refreshed on load progress
-	 *    update: function()
+	 *    update: function( dt )
 	 *    {
 	 *       if (this.invalidate===true)
 	 *       {
@@ -166,59 +166,6 @@
 		},
 
 		/**
-		 * update function<br>
-		 * optional empty function<br>
-		 * only used by the engine if the object has been initialized using addAsObject=true<br>
-		 * @name update
-		 * @memberOf me.ScreenObject
-		 * @function
-         * @param {Number} time current timestamp
-		 * @example
-		 * // define a Title Screen
-		 * var TitleScreen = me.ScreenObject.extend(
-		 * {
-		 *    // override the default constructor
-		 *    init : function()
-		 *    {
-		 *       //call the parent constructor giving true
-		 *       //as parameter, so that we use the update & draw functions
-		 *       this.parent(true);
-		 *       // ...
-		 *     },
-		 *     // ...
-		 * });
-		 */
-		update : function(time) {
-			return false;
-		},
-
-		/**
-		 * draw function<br>
-		 * optional empty function<br>
-		 * only used by the engine if the object has been initialized using addAsObject=true<br>
-		 * @name draw
-		 * @memberOf me.ScreenObject
-		 * @function
-		 * @example
-		 * // define a Title Screen
-		 * var TitleScreen = me.ScreenObject.extend(
-		 * {
-		 *    // override the default constructor
-		 *    init : function()
-		 *    {
-		 *       //call the parent constructor giving true
-		 *       //as parameter, so that we use the update & draw functions
-		 *       this.parent(true);
-		 *       // ...
-		 *     },
-		 *     // ...
-		 * });
-		 */
-		draw : function() {
-			// to be extended
-		},
-
-		/**
 		 * onResetEvent function<br>
 		 * called by the state manager when reseting the object<br>
 		 * this is typically where you will load a level, etc...
@@ -264,7 +211,7 @@
 
 		if (!requestAnimationFrame || !cancelAnimationFrame) {
 			requestAnimationFrame = function(callback, element) {
-				var currTime = me.device.HighResTimer ? window.performance.now() : Date.now();
+				var currTime = window.performance.now();
 				var timeToCall = Math.max(0, 16 - (currTime - lastTime));
 				var id = window.setTimeout(function() { 
 					callback(currTime + timeToCall); 
@@ -364,6 +311,7 @@
 
 		/**
 		 * this is only called when using requestAnimFrame stuff
+         * @param {Number} time current timestamp in milliseconds
 		 * @ignore
 		 */
 		function _renderFrame(time) {
