@@ -142,7 +142,7 @@
 		 * // and then remove it
 		 * this.flicker(60, function()
 		 * {
-		 *    me.game.remove(this);
+		 *    me.game.world.removeChild(this);
 		 * });
 		 */
 		flicker : function(duration, callback) {
@@ -253,10 +253,8 @@
 				this.flickerState = !this.flickerState;
 				if (!this.flickerState) return;
 			}
-
-			// save the current the context
+			// save context
 			context.save();
-			
 			// sprite alpha value
 			context.globalAlpha *= this.getOpacity();
             
@@ -298,8 +296,7 @@
 							xpos, ypos,
 							w, h);
 
-			
-			// restore the context
+			// restore context
 			context.restore();
 		},
 
@@ -507,7 +504,7 @@
 		 *
 		 * // set "die" animation, and remove the object when finished
 		 * this.setCurrentAnimation("die", (function () {
-		 *    me.game.remove(this);
+		 *    me.game.world.removeChild(this);
 		 *	  return false; // do not reset to first frame
 		 * }).bind(this));
 		 *
