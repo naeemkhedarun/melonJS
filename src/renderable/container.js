@@ -73,7 +73,15 @@
 		 * @ignore
 		 */	
 		children : null,
-
+        
+		/**
+		 * the container default transformation matrix
+		 * @public
+		 * @type me.Matrix2d
+		 * @name transform
+		 * @memberOf me.ObjectContainer
+		 */
+		transform : new me.Matrix2d(),
 
 		/** 
 		 * constructor
@@ -90,6 +98,7 @@
 			// by default reuse the global me.game.setting
 			this.sortOn = me.game.sortOn;
 			this.autoSort = true;
+            this.transform.identity();
 		},
 
 
@@ -508,9 +517,12 @@
 			for ( var i = this.children.length, obj; i--, obj = this.children[i];) {
 				// don't remove it if a persistent object
 				if ( !obj.isPersistent ) {
-					this.removeChild(obj);
+					this.removeChildNow(obj);
 				}	
 			}
+            
+            // reset the transformation matrix
+            this.transform.identity();
 		},
 
 		/**
@@ -581,9 +593,15 @@
             var isFloating = false;
 			
 			this.drawCount = 0;			
-
-			// save the current context
-			context.save();
+            
+            context.save();
+            
+			// apply the container current transform
+			context.transform(
+                this.transform.a, this.transform.b,
+                this.transform.c, this.transform.d, 
+                this.transform.e, this.transform.f
+            );
             
 			// apply the group opacity
 			context.globalAlpha *= this.getOpacity();
@@ -614,9 +632,9 @@
 					this.drawCount++;
 				}
 			}
+            
+            context.restore();
 
-			// restore the context
-			context.restore();
 		}
 
 	});

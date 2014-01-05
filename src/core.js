@@ -1021,9 +1021,6 @@ window.me = window.me || {};
 		// flag to redraw the sprites
 		var initialized = false;
 
-		// to keep track of deferred stuff
-		var pendingRemove = null;
-
 		// to know when we have to refresh the display
 		var isDirty = true;
 
@@ -1183,11 +1180,11 @@ window.me = window.me || {};
 				api.viewport.reset();
 			}
 
-			// reset the transform matrix to the normal one
-			frameBuffer.setTransform(1, 0, 0, 1, 0, 0);
-
 			// dummy current level
 			api.currentLevel = {pos:{x:0,y:0}};
+
+			// reset the transform matrix to the normal one
+			frameBuffer.setTransform(1, 0, 0, 1, 0, 0);
 
 			// reset the frame counter
 			frameCounter = 0;
@@ -1241,7 +1238,7 @@ window.me = window.me || {};
 				isDirty = api.world.update(me.timer.getDelta()) || isDirty;
 			
 				// update the camera/viewport
-				isDirty = api.viewport.update(isDirty) || isDirty;
+				isDirty = api.viewport.update(me.timer.getDelta()) || isDirty;
 			}
 		};
 		
@@ -1259,35 +1256,36 @@ window.me = window.me || {};
 			if (isDirty) {
 				// cache the viewport rendering position, so that other object
 				// can access it later (e,g. entityContainer when drawing floating objects)
-				api.viewport.screenX = api.viewport.pos.x + ~~api.viewport.offset.x;
-				api.viewport.screenY = api.viewport.pos.y + ~~api.viewport.offset.y;
+				var translateX = api.viewport.pos.x + ~~api.viewport.offset.x;
+				var translateY = api.viewport.pos.y + ~~api.viewport.offset.y;
 							
-				// save the current context
-				frameBuffer.save();
-				// translate by default to screen coordinates
-				frameBuffer.translate(-api.viewport.screenX, -api.viewport.screenY);
+				// translate the world coordinates by default to screen coordinates
+				api.world.transform.translate(-translateX, -translateY);
 				
 				// substract the map offset to current the current pos
-				api.viewport.screenX -= api.currentLevel.pos.x;
-				api.viewport.screenY -= api.currentLevel.pos.y;
+				api.viewport.screenX = translateX - api.currentLevel.pos.x;
+				api.viewport.screenY = translateY - api.currentLevel.pos.y;
 
 				// update all objects, 
 				// specifying the viewport as the rectangle area to redraw
-
 				api.world.draw(frameBuffer, api.viewport);
+                
+                // translate back
+				api.world.transform.translate(translateX, translateY);
 
 				// collision detection debug
 				if (me.debug.renderCollisionGrid) {
 					me.collision.draw(frameBuffer);
 				}
-
-				//restore context
-				frameBuffer.restore();
-				
+			
 				// draw our camera/viewport
 				api.viewport.draw(frameBuffer);
+
 			}
 			isDirty = false;
+
+			// blit our frame
+			me.video.blitSurface();
 		};
 
 		// return our object

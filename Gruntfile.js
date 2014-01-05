@@ -8,6 +8,7 @@ module.exports = function(grunt) {
         'src/shapes/rectangle.js',
         'src/shapes/circle.js',
         'src/shapes/poly.js',
+        'src/math/matrix.js',
         'src/debug/debug.js',
         'src/renderable/base.js',
         'src/renderable/sprite.js',
