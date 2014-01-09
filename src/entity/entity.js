@@ -898,26 +898,25 @@
 
 
 		/**
-		 * handle the player movement on a slope
-		 * and update vel value
+		 * adjust the given rect to the given slope tile
 		 * @ignore
 		 */
-		checkSlope : function(tile, left) {
+		checkSlope : function(rect, tile, left) {
 
 			// first make the object stick to the tile
-			this.pos.y = tile.pos.y - this.height;
+			rect.pos.y = tile.pos.y - rect.height;
 
 			// normally the check should be on the object center point,
 			// but since the collision check is done on corner, we must do the same thing here
 			if (left)
-				this.slopeY = tile.height - (this.collisionBox.right + this.vel.x - tile.pos.x);
+				this.slopeY = tile.height - (rect.right + this.vel.x - tile.pos.x);
 			else
-				this.slopeY = (this.collisionBox.left + this.vel.x - tile.pos.x);
+				this.slopeY = (rect.left + this.vel.x - tile.pos.x);
 
 			// cancel y vel
 			this.vel.y = 0;
 			// set player position (+ workaround when entering/exiting slopes tile)
-			this.pos.y += this.slopeY.clamp(0, tile.height);
+			rect.pos.y += this.slopeY.clamp(0, tile.height);
 
 		},
 

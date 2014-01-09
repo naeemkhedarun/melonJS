@@ -326,7 +326,7 @@
 		 */
 		removeChild : function(child, keepalive) {
 			if(child.ancestor) {
-				deferredRemove.defer(child, keepalive);
+				deferredRemove.defer(this, child, keepalive);
 			}
 		},
 
@@ -473,7 +473,7 @@
 					self.pendingSort = null;
 					// make sure we redraw everything
 					me.game.repaint();
-				}.defer(this));
+				}.defer(this, this));
 			}
 		},
 		

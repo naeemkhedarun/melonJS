@@ -19,7 +19,7 @@ var game = {
         }
 
         // install the debug panel plugin
-        me.plugin.register(debugPanel, "debug");
+        me.plugin.register(this, debugPanel, "debug");
         me.debug.renderCollisionMap = true;
         me.debug.renderCollisionGrid = true;
 

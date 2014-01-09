@@ -172,6 +172,7 @@
          * @param {me.Vector2d} v x,y position for the rectangle
          * @param {Number} w width of the rectangle
          * @param {Number} h height of the rectangle
+         * @return {me.Rect} this rectangle
          */
         set : function(v, w, h) {
             // set the new position vector
@@ -179,6 +180,8 @@
             
             // resize
             this.resize(w, h);
+            
+            return this;
         },
 
         /**
@@ -188,6 +191,7 @@
          * @function
          * @param {Number} w new width of the rectangle
          * @param {Number} h new height of the rectangle
+         * @return {me.Rect} this rectangle
          */
         resize : function(w, h) {
             this.width = w;
@@ -195,6 +199,8 @@
             
             this.hWidth = ~~(w / 2);
             this.hHeight = ~~(h / 2);
+            
+            return this;
         },
 
         /**
@@ -202,10 +208,15 @@
          * @name getBounds
          * @memberOf me.Rect
          * @function
+         * @param {me.Rect} [rect] an optional rectangle object to use when returning the bounding rect(else returns a new object)
          * @return {me.Rect} new rectangle    
          */
-        getBounds : function() {
-            return this.clone();
+        getBounds : function(rect) {
+            if (typeof(rect) !== 'undefined') {
+                return rect.set(this.pos, this.width, this.height);
+            } else {
+                return this.clone();
+            }
         },
         
         /**
@@ -216,7 +227,7 @@
          * @return {me.Rect} new rectangle    
          */
         clone : function() {
-            return new me.Rect(this.pos.clone(), this.width, this.height);
+            return new me.Rect(this.pos, this.width, this.height);
         },
         
         /**
@@ -315,6 +326,8 @@
         flipX : function(sw) {
             this.pos.x = sw - this.width - this.pos.x;
             this.hWidth = ~~(this.width / 2);
+
+            return this;
         },
 
         /**
@@ -327,6 +340,8 @@
         flipY : function(sh) {
             this.pos.y = sh - this.height - this.pos.y;
             this.hHeight = ~~(this.height / 2);
+
+            return this;
         },
         
         /**
