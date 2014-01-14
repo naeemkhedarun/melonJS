@@ -39,9 +39,12 @@ module.exports = function(grunt) {
         'src/vendors/tween.js',
         'src/vendors/minpubsub.src.js',
         'src/entity/collision.js',
+        'src/vendors/howler.js',
         'src/plugin/plugin.js',
         'src/entity/draggable.js',
-        'src/entity/droptarget.js'
+        'src/entity/droptarget.js',
+	'src/particles/emitter.js',
+	'src/particles/particle.js'
     ];
 
     // Project configuration.

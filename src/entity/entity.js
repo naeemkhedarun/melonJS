@@ -131,6 +131,7 @@
 			obj.add("me.LevelEntity", me.LevelEntity);
 			obj.add("me.Tween", me.Tween, true);
 			obj.add("me.Color", me.Color, true);
+			obj.add("me.Particle", me.Particle, true);
 		};
 
 		/**
@@ -191,7 +192,7 @@
 		 * // when we need new enemy we can add more params, that the object construct requires:
 		 * var enemy = me.entityPool.newInstanceOf("enemy", x, y, direction, speed, power, life);
 		 * // ...
-		 * // when we want to destroy existing object, the remove 
+		 * // when we want to destroy existing object, the remove
 		 * // function will ensure the object can then be reallocated later
 		 * me.game.world.removeChild(enemy);
 		 * me.game.world.removeChild(bullet);
@@ -207,7 +208,7 @@
 					args[0] = proto;
 					return new (proto.bind.apply(proto, args))();
 				}
-				
+
 				var obj, entity = entityClass[name];
 				proto = entity["class"];
 				if (entity["pool"].length > 0) {
@@ -267,7 +268,7 @@
 		 * @memberOf me.entityPool
 		 * @public
 		 * @function
-		 * @param {Object} instance to be removed 
+		 * @param {Object} instance to be removed
 		 */
 		obj.freeInstance = function(obj) {
 
@@ -318,7 +319,7 @@
 	 */
 	me.ObjectEntity = me.Renderable.extend(
 	/** @scope me.ObjectEntity.prototype */ {
-	
+
 		/**
 		 * define the type of the object<br>
 		 * default value : none<br>
@@ -338,17 +339,6 @@
 		 * @memberOf me.ObjectEntity
 		 */
 		collisionMask : 0xFFFFFFFF,
-
-		/**
-		 * Entity collision Box<br>
-		 * (reference to me.ObjectEntity.shapes[0].getBounds)
-		 * @public
-		 * @deprecated
-		 * @type me.Rect
-		 * @name collisionBox
-		 * @memberOf me.ObjectEntity
-		 */
-		collisionBox : null,
 
 		/**
 		 * Private collision state<br>
@@ -376,24 +366,24 @@
 		 * @memberOf me.ObjectEntity
 		 */
 		renderable : null,
-		
+
 		// just to keep track of when we flip
 		lastflipX : false,
 		lastflipY : false,
-		
-		
+
+
 		/** @ignore */
 		init : function(x, y, settings) {
             // instantiate pos here to avoid
             // later re-instantiation
             if (this.pos === null) {
                 this.pos = new me.Vector2d();
-            }            
+            }
 			// call the parent constructor
 			this.parent(this.pos.set(x,y),
 						~~settings.spritewidth  || ~~settings.width,
 						~~settings.spriteheight || ~~settings.height);
-			
+
 			if (settings.image) {
 				var image = typeof settings.image === "string" ? me.loader.getImage(settings.image) : settings.image;
 				this.renderable = new me.AnimationSheet(0, 0, image,
@@ -401,7 +391,7 @@
 														~~settings.spriteheight,
 														~~settings.spacing,
 														~~settings.margin);
-				
+
 				// check for user defined transparent color
 				if (settings.transparent_color) {
 					this.renderable.setTransparency(settings.transparent_color);
@@ -420,7 +410,7 @@
              */
             if (this.vel === undefined) {
                 this.vel = new me.Vector2d();
-            }    
+            }
             this.vel.set(0,0);
 
             /**
@@ -432,9 +422,9 @@
              */
             if (this.accel === undefined) {
                 this.accel = new me.Vector2d();
-            }    
+            }
             this.accel.set(0,0);
-            
+
             /**
              * entity current friction<br>
              * @public
@@ -443,7 +433,7 @@
              */
             if (this.friction === undefined) {
                 this.friction = new me.Vector2d();
-            }    
+            }
             this.friction.set(0,0);
 
             /**
@@ -455,9 +445,9 @@
              */
             if (this.maxVel === undefined) {
                 this.maxVel = new me.Vector2d();
-            }    
+            }
             this.maxVel.set(1000, 1000);
-        
+
 			// some default contants
 			/**
 			 * Default gravity value of the entity<br>
@@ -471,7 +461,7 @@
 			 * @memberOf me.ObjectEntity
 			 */
 			this.gravity = me.sys.gravity!==undefined ? me.sys.gravity : 0.98;
-			
+
 			/**
 			 * dead/living state of the entity<br>
 			 * default value : true
@@ -481,13 +471,13 @@
 			 * @memberOf me.ObjectEntity
 			 */
 			this.alive = true;
-			
+
 			// make sure it's visible by default
 			this.visible = true;
-			
+
 			// and also non floating by default
 			this.floating = false;
-			
+
 			// and non persistent per default
 			this.isPersistent = false;
 
@@ -550,15 +540,13 @@
 			// to enable collision detection			
 			this.collidable = typeof(settings.collidable) !== "undefined" ?	settings.collidable : true;
 			
-			// default object type
-			this.type = settings.type || 0;
-			
+
 			// default flip value
 			this.lastflipX = this.lastflipY = false;
-			
+
 			// ref to the collision map
 			this.collisionMap = me.game.collisionMap;
-						
+
 			/**
 			 * Define if an entity can go through breakable tiles<br>
 			 * default value : false<br>
@@ -578,19 +566,19 @@
 			 */
 			this.onTileBreak = null;
 
-            // add a default shape 
+            // add a default shape
             if (settings.isEllipse===true) {
                 // ellipse
                 this.addShape(new me.Ellipse(new me.Vector2d(0,0), this.width, this.height));
-            } 
+            }
             else if ((settings.isPolygon===true) || (settings.isPolyline===true)) {
                 // add a polyshape
                 this.addShape(new me.PolyShape(new me.Vector2d(0,0), settings.points, settings.isPolygon));
-                // adjust the entity size and position based on the corresponding bounding box
-                this.width = this.collisionBox.width;
-                this.height = this.collisionBox.height;
-                this.pos.add(this.collisionBox.pos);
-           } 
+                // TODO : fixed this bug, as it should not matter!
+                this._bounds = this.getShape().getBounds();
+                this.width = this._bounds.width;
+                this.height = this._bounds.height;
+            }
             else {
                 // add a rectangle
                 this.addShape(new me.Rect(new me.Vector2d(0,0), this.width, this.height));
@@ -610,7 +598,6 @@
 
             // Set initial position in collision spacial grid
             me.collision.updateMovement(this);
-
 		},
 
 		/**
@@ -625,8 +612,9 @@
 		 * @param {Number} h height of the hit box
 		 */
 		updateColRect : function(x, w, y, h) {
-			this.collisionBox.adjustSize(x, w, y, h);
-			this._collision.range.adjustSize(x, w, y, h);
+			if (this.getShape().shapeType === "Rectangle") {
+				this.getShape().adjustSize(x, w, y, h);
+			}	
 		},
 
         /**
@@ -642,14 +630,20 @@
                 this.shapes = [];
             }
             this.shapes.push(shape);
-            
-            // some hack to get the collisionBox working in this branch
-            // to be removed once the ticket #103 will be done
-            if (this.shapes.length === 1) {
-                this.collisionBox = this.shapes[0].getBounds();
-            }
 		},
-         
+
+		 /**
+		 * return the current collision shape for this entity
+		 * @name getShape
+		 * @memberOf me.ObjectEntity
+         * @public
+		 * @function
+		 * @param {me.objet} shape a shape object
+		 */
+		getShape : function(shape) {
+			return this.shapes[0];
+		},
+
 		/**
 		 * set the entity default velocity<br>
 		 * note : velocity is by default limited to the same value, see setMaxVelocity if needed<br>
@@ -695,7 +689,7 @@
 			this.friction.x = x || 0;
 			this.friction.y = y || 0;
 		},
-		
+
 		/**
 		 * Flip object on horizontal axis
 		 * @name flipX
@@ -711,8 +705,9 @@
 					this.renderable.flipX(flip);
 				}
 				// flip the collision box
-				this.collisionBox.flipX(this.width);
-				this._collision.range.flipX(this.width);
+				if (this.getShape().flipX) {
+					this.getShape().flipX(this.width);
+				}
 			}
 		},
 
@@ -731,8 +726,9 @@
 					this.renderable.flipY(flip);
 				}
 				// flip the collision box
-				this.collisionBox.flipY(this.height);
-				this._collision.range.flipY(this.height);
+				if (this.getShape().flipY) {
+					this.getShape().flipY(this.height);
+				}
 			}
 		},
 
@@ -843,7 +839,7 @@
 			var dy = (this.pos.y + this.hHeight) - (e.pos.y + e.hHeight);
 			return Math.sqrt(dx*dx+dy*dy);
 		},
-		
+
 		/**
 		 * return the distance to the specified point
 		 * @name distanceToPoint
@@ -860,7 +856,7 @@
 			var dy = (this.pos.y + this.hHeight) - (v.y);
 			return Math.sqrt(dx*dx+dy*dy);
 		},
-		
+
 		/**
 		 * return the angle to the specified entity
 		 * @name angleTo
@@ -877,8 +873,8 @@
 			var ay = (e.pos.y + e.hHeight) - (this.pos.y + this.hHeight);
 			return Math.atan2(ay, ax);
 		},
-		
-		
+
+
 		/**
 		 * return the angle to the specified point
 		 * @name angleToPoint
@@ -1035,7 +1031,7 @@
 				return false;
 			}
 		},
-		
+
 		/** @ignore */
 		update : function( dt ) {
 			if (this.renderable) {
@@ -1043,19 +1039,19 @@
 			}
 			return false;
 		},
-		
-		/**
-		 * @ignore	
-		 */
-		getBounds : function() {
-			if (this.renderable) {
-				// translate the renderable position since its 
-				// position is relative to this entity
-				return this.renderable.getBounds().translateV(this.pos);
-			}
-			return null;
+
+        /**
+         * returns the bounding box for this entity, the smallest rectangle object completely containing the entity current shape.
+         * @name getBounds
+         * @memberOf me.ObjectEntity
+         * @function
+         * @param {me.Rect} [rect] an optional rectangle object to use when returning the bounding rect(else returns a new object)
+         * @return {me.Rect} new rectangle    
+         */
+		getBounds : function(rect) {
+			return this.shapes[0].getBounds(rect);
 		},
-		
+
 		/**
 		 * object draw<br>
 		 * not to be called by the end user<br>
@@ -1079,7 +1075,7 @@
 				context.translate(-x, -y);
 			}
 		},
-		
+
 		/**
 		 * Destroy function<br>
 		 * @ignore
@@ -1096,9 +1092,8 @@
 			me.collision.remove(this);
 
 			// Free memory
-			this.collisionBox = null;
 			this._collision = null;
-            this.shapes = [];
+			this.shapes = [];
 		},
 
 		/**
@@ -1168,7 +1163,7 @@
 			this.fade = settings.fade;
 			this.duration = settings.duration;
 			this.fading = false;
-			
+
 			// a temp variable
 			this.gotolevel = settings.to;
 		},
