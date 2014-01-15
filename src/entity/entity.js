@@ -351,12 +351,21 @@
         /*
          * Entity collision shapes<br>
 		 * (RFU - Reserved for Future Usage)
-		 * @protected
+		 * @ignore
 		 * @type Object[]
 		 * @name shapes
 		 * @memberOf me.ObjectEntity
 		 */
 		shapes : null,
+        
+		/**
+		 * The current shape index
+		 * @ignore
+		 * @type Number
+		 * @name shapeIndex
+		 * @memberOf me.ObjectEntity
+		 */
+		shapeIndex : 0,
 
 		/**
 		 * The entity renderable object (if defined)
@@ -566,23 +575,15 @@
 			 */
 			this.onTileBreak = null;
 
-            // add a default shape
-            if (settings.isEllipse===true) {
-                // ellipse
-                this.addShape(new me.Ellipse(new me.Vector2d(0,0), this.width, this.height));
-            }
-            else if ((settings.isPolygon===true) || (settings.isPolyline===true)) {
-                // add a polyshape
-                this.addShape(new me.PolyShape(new me.Vector2d(0,0), settings.points, settings.isPolygon));
-                // TODO : fixed this bug, as it should not matter!
-                this._bounds = this.getShape().getBounds();
-                this.width = this._bounds.width;
-                this.height = this._bounds.height;
-            }
-            else {
-                // add a rectangle
-                this.addShape(new me.Rect(new me.Vector2d(0,0), this.width, this.height));
-            }
+			// add the given collision shape to the object
+			this.addShape(settings.getShape(this.width, this.height));
+			// ---- TODO : fix this bug, as it should not matter!
+			if (this.getShape().shapeType === 'PolyShape') {
+				this._bounds = this.getBounds();
+				this.width = this._bounds.width;
+				this.height = this._bounds.height;
+			}
+			// ----
             
             // to enable collision detection
             this.collisionMask = typeof(settings.collisionMask) !== "undefined" ?
@@ -623,7 +624,7 @@
 		 * @memberOf me.ObjectEntity
          * @public
 		 * @function
-		 * @param {me.objet} shape a shape object
+		 * @param {me.Rect|me.PolyShape|me.Ellipse} shape a shape object
 		 */
 		addShape : function(shape) {
 			if (this.shapes === null) {
@@ -632,18 +633,54 @@
             this.shapes.push(shape);
 		},
 
-		 /**
+		/**
 		 * return the current collision shape for this entity
 		 * @name getShape
 		 * @memberOf me.ObjectEntity
          * @public
 		 * @function
-		 * @param {me.objet} shape a shape object
+		 * @return {me.Rect|me.PolyShape|me.Ellipse} shape a shape object
 		 */
-		getShape : function(shape) {
-			return this.shapes[0];
+		getShape : function() {
+			return this.shapes[this.shapeIndex];
 		},
 
+		/**
+		 * change the current collision shape for this entity
+		 * @name setShape
+		 * @memberOf me.ObjectEntity
+		 * @public
+		 * @function
+		 * @param {Number} index shape index
+		 */
+		setShape : function(index) {
+			if (typeof(this.shapes[index]) !== 'undefined') {
+				this.shapeIndex = index;
+				return;
+			}
+			throw "melonJS (me.Entity): Shape (" + index + ") not defined";
+		},
+        
+		/**
+		 * onCollision Event function<br>
+		 * called by the game manager when the object collide with another object.<br>
+		 * by default, if the object type is Collectable, the object is removed.
+		 * @name onCollision
+		 * @memberOf me.ObjectEntity
+		 * @function
+		 * @param {me.ObjectEntity} obj The second object that hit this object
+		 * @param {me.Vector2d} depth Collision depth
+		 * @return false to prevent default collision response
+		 * @protected
+		 */
+		onCollision : function(obj, depth) {
+			// destroy the object if collectable
+			if (this.type === me.collision.types.COLLECTABLE_OBJECT) {
+				me.game.world.removeChild(this);
+                return false;
+			}
+		},
+        
 		/**
 		 * set the entity default velocity<br>
 		 * note : velocity is by default limited to the same value, see setMaxVelocity if needed<br>
@@ -1012,26 +1049,6 @@
 
 		},
 
-		/**
-		 * onCollision Event function<br>
-		 * called by the game manager when the object collides with another object.<br>
-		 * by default, if the object type is Collectable, the object is removed.
-		 * @name onCollision
-		 * @memberOf me.ObjectEntity
-		 * @function
-		 * @param {me.ObjectEntity} obj The second object that hit this object
-		 * @param {me.Vector2d} depth Collision depth
-		 * @return false to prevent default collision response
-		 * @protected
-		 */
-		onCollision : function(obj, depth) {
-			// destroy the object if collectable
-			if (this.type === me.collision.types.COLLECTABLE_OBJECT) {
-				me.game.remove(this);
-				return false;
-			}
-		},
-
 		/** @ignore */
 		update : function( dt ) {
 			if (this.renderable) {
@@ -1049,7 +1066,7 @@
          * @return {me.Rect} new rectangle    
          */
 		getBounds : function(rect) {
-			return this.shapes[0].getBounds(rect);
+			return this.getShape().getBounds(rect);
 		},
 
 		/**
@@ -1093,7 +1110,8 @@
 
 			// Free memory
 			this._collision = null;
-			this.shapes = [];
+            this.shapes = [];
+            this.shapeIndex = 0;
 		},
 
 		/**
