@@ -75,8 +75,10 @@
 
         /**
          * Base class for Audio exception handling.
-         * @name Error
-         * @memberOf me.video
+         * @name audio.Error
+         * @ignore
+         * @class
+         * @memberOf me.audio
          * @constructor
          * @param {String} msg Error message.
          */
@@ -163,7 +165,7 @@
                 urls.push(sound.src + sound.name + "." + this.audioFormats[i] + me.loader.nocache);
             }
             audioTracks[sound.name] = new Howl({
-                urls : urls,
+                src : urls,
                 volume : Howler.volume(),
                 onend : function (soundId) {
                     if (callbacks[soundId]) {
