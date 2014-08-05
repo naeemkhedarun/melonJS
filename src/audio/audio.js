@@ -29,7 +29,7 @@
 
         // current music
         var current_track_id = null;
-        var current_track_instance = null;
+        var current_track_instance = undefined;
 
         // a retry counter
         var retry_counter = 0;
